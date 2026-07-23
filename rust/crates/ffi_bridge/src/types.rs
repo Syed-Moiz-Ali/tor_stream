@@ -878,3 +878,80 @@ impl From<FrbSearchResultItem> for search::SearchResultItem {
         }
     }
 }
+
+#[frb(non_opaque)]
+#[derive(Debug, Clone)]
+pub struct FrbPeerStats {
+    pub queued: u32,
+    pub connecting: u32,
+    pub live: u32,
+    pub seen: u32,
+    pub dead: u32,
+}
+
+impl From<torrent_engine::PeerStats> for FrbPeerStats {
+    fn from(p: torrent_engine::PeerStats) -> Self {
+        Self {
+            queued: p.queued,
+            connecting: p.connecting,
+            live: p.live,
+            seen: p.seen,
+            dead: p.dead,
+        }
+    }
+}
+
+#[frb(non_opaque)]
+#[derive(Debug, Clone)]
+pub enum FrbEngineEvent {
+    SessionStarted,
+    SessionStopped,
+    TorrentAdded { id: u64, name: Option<String>, total_bytes: u64 },
+    MetadataReceived { id: u64, name: String, total_bytes: u64 },
+    TorrentRemoved { id: u64 },
+    DownloadStarted { id: u64 },
+    DownloadPaused { id: u64 },
+    DownloadFinished { id: u64 },
+    ProgressUpdate { id: u64, info: FrbTorrentInfo },
+    PeerUpdate { id: u64, stats: FrbPeerStats },
+    PeerConnected { id: u64, peer_addr: String },
+    PeerDisconnected { id: u64, peer_addr: String, reason: String },
+    ResumeSaved { id: u64 },
+    Error { id: Option<u64>, message: String, fatal: bool },
+}
+
+impl From<torrent_engine::EngineEvent> for FrbEngineEvent {
+    fn from(e: torrent_engine::EngineEvent) -> Self {
+        match e {
+            torrent_engine::EngineEvent::SessionStarted => Self::SessionStarted,
+            torrent_engine::EngineEvent::SessionStopped => Self::SessionStopped,
+            torrent_engine::EngineEvent::TorrentAdded { id, name, total_bytes } => {
+                Self::TorrentAdded { id, name, total_bytes }
+            }
+            torrent_engine::EngineEvent::MetadataReceived { id, name, total_bytes } => {
+                Self::MetadataReceived { id, name, total_bytes }
+            }
+            torrent_engine::EngineEvent::TorrentRemoved { id } => Self::TorrentRemoved { id },
+            torrent_engine::EngineEvent::DownloadStarted { id } => Self::DownloadStarted { id },
+            torrent_engine::EngineEvent::DownloadPaused { id } => Self::DownloadPaused { id },
+            torrent_engine::EngineEvent::DownloadFinished { id } => Self::DownloadFinished { id },
+            torrent_engine::EngineEvent::ProgressUpdate { id, info } => {
+                Self::ProgressUpdate { id, info: FrbTorrentInfo::from(info) }
+            }
+            torrent_engine::EngineEvent::PeerUpdate { id, stats } => {
+                Self::PeerUpdate { id, stats: FrbPeerStats::from(stats) }
+            }
+            torrent_engine::EngineEvent::PeerConnected { id, peer_addr } => {
+                Self::PeerConnected { id, peer_addr }
+            }
+            torrent_engine::EngineEvent::PeerDisconnected { id, peer_addr, reason } => {
+                Self::PeerDisconnected { id, peer_addr, reason }
+            }
+            torrent_engine::EngineEvent::ResumeSaved { id } => Self::ResumeSaved { id },
+            torrent_engine::EngineEvent::Error { id, message, fatal } => {
+                Self::Error { id, message, fatal }
+            }
+            _ => Self::Error { id: None, message: "Engine event".into(), fatal: false },
+        }
+    }
+}

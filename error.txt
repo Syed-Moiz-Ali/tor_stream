@@ -1,1 +1,14 @@
-@phases\  and @TDD_TorStream.md  check this and check the code its correct and flow is correct or not becasue its stucked on  it not starting bro the state is not changing or not and in stream screen there is error Failed to init stream Stream not active for torrent_id=0,file_index=0
+
+E/flutter (19816): [ERROR:flutter/runtime/dart_vm_initializer.cc(40)] Unhandled Exception: AnyhowException(Failed to add magnet
+E/flutter (19816):
+E/flutter (19816): Caused by:
+E/flutter (19816):     Session error: error creating a new file (because allow_overwrite = false) "/data/user/0/com.example.tor_stream/app_flutter/Torrent Downloaded From XXXClub.to .nfo")
+E/flutter (19816): #0      SimpleDecoder.decode (package:flutter_rust_bridge/src/codec/base.dart:32:9)
+E/flutter (19816): #1      SseCodec._decode (package:flutter_rust_bridge/src/codec/sse.dart:45:55)
+E/flutter (19816): #2      SseCodec.decodeObject (package:flutter_rust_bridge/src/codec/sse.dart:35:12)
+E/flutter (19816): <asynchronous suspension>
+E/flutter (19816): #3      addMagnetLinkProvider.<anonymous closure> (package:tor_stream/features/add_torrent/providers/add_torrent_provider.dart:29:14)
+E/flutter (19816): <asynchronous suspension>
+E/flutter (19816): #4      FutureHandlerProviderElementMixin.handleFuture.<anonymous closure>.<anonymous closure> (package:riverpod/src/async_notifier/base.dart:355:9)
+E/flutter (19816): <asynchronous suspension>
+E/flutter (19816):

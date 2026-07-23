@@ -25,6 +25,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   AnyhowException dco_decode_AnyhowException(dynamic raw);
 
   @protected
+  RustStreamSink<FrbEngineEvent> dco_decode_StreamSink_frb_engine_event_Sse(
+    dynamic raw,
+  );
+
+  @protected
   String dco_decode_String(dynamic raw);
 
   @protected
@@ -40,6 +45,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   FrbMediaFile dco_decode_box_autoadd_frb_media_file(dynamic raw);
 
   @protected
+  FrbPeerStats dco_decode_box_autoadd_frb_peer_stats(dynamic raw);
+
+  @protected
   FrbSearchFilters dco_decode_box_autoadd_frb_search_filters(dynamic raw);
 
   @protected
@@ -52,7 +60,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   FrbSubtitleConfig dco_decode_box_autoadd_frb_subtitle_config(dynamic raw);
 
   @protected
+  FrbTorrentInfo dco_decode_box_autoadd_frb_torrent_info(dynamic raw);
+
+  @protected
   FrbVideoStreamInfo dco_decode_box_autoadd_frb_video_stream_info(dynamic raw);
+
+  @protected
+  BigInt dco_decode_box_autoadd_u_64(dynamic raw);
 
   @protected
   EngineInfo dco_decode_engine_info(dynamic raw);
@@ -85,6 +99,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   FrbEngineConfig dco_decode_frb_engine_config(dynamic raw);
 
   @protected
+  FrbEngineEvent dco_decode_frb_engine_event(dynamic raw);
+
+  @protected
   FrbHealthStatus dco_decode_frb_health_status(dynamic raw);
 
   @protected
@@ -98,6 +115,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   FrbMediaThumbnail dco_decode_frb_media_thumbnail(dynamic raw);
+
+  @protected
+  FrbPeerStats dco_decode_frb_peer_stats(dynamic raw);
 
   @protected
   FrbPerformanceMetrics dco_decode_frb_performance_metrics(dynamic raw);
@@ -214,6 +234,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  BigInt? dco_decode_opt_box_autoadd_u_64(dynamic raw);
+
+  @protected
   int dco_decode_u_32(dynamic raw);
 
   @protected
@@ -232,6 +255,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   AnyhowException sse_decode_AnyhowException(SseDeserializer deserializer);
 
   @protected
+  RustStreamSink<FrbEngineEvent> sse_decode_StreamSink_frb_engine_event_Sse(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   String sse_decode_String(SseDeserializer deserializer);
 
   @protected
@@ -247,6 +275,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   FrbMediaFile sse_decode_box_autoadd_frb_media_file(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  FrbPeerStats sse_decode_box_autoadd_frb_peer_stats(
     SseDeserializer deserializer,
   );
 
@@ -271,9 +304,17 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  FrbTorrentInfo sse_decode_box_autoadd_frb_torrent_info(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   FrbVideoStreamInfo sse_decode_box_autoadd_frb_video_stream_info(
     SseDeserializer deserializer,
   );
+
+  @protected
+  BigInt sse_decode_box_autoadd_u_64(SseDeserializer deserializer);
 
   @protected
   EngineInfo sse_decode_engine_info(SseDeserializer deserializer);
@@ -310,6 +351,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   FrbEngineConfig sse_decode_frb_engine_config(SseDeserializer deserializer);
 
   @protected
+  FrbEngineEvent sse_decode_frb_engine_event(SseDeserializer deserializer);
+
+  @protected
   FrbHealthStatus sse_decode_frb_health_status(SseDeserializer deserializer);
 
   @protected
@@ -325,6 +369,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   FrbMediaThumbnail sse_decode_frb_media_thumbnail(
     SseDeserializer deserializer,
   );
+
+  @protected
+  FrbPeerStats sse_decode_frb_peer_stats(SseDeserializer deserializer);
 
   @protected
   FrbPerformanceMetrics sse_decode_frb_performance_metrics(
@@ -475,6 +522,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  BigInt? sse_decode_opt_box_autoadd_u_64(SseDeserializer deserializer);
+
+  @protected
   int sse_decode_u_32(SseDeserializer deserializer);
 
   @protected
@@ -496,6 +546,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_StreamSink_frb_engine_event_Sse(
+    RustStreamSink<FrbEngineEvent> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_String(String self, SseSerializer serializer);
 
   @protected
@@ -513,6 +569,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_box_autoadd_frb_media_file(
     FrbMediaFile self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_frb_peer_stats(
+    FrbPeerStats self,
     SseSerializer serializer,
   );
 
@@ -541,10 +603,19 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_box_autoadd_frb_torrent_info(
+    FrbTorrentInfo self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_box_autoadd_frb_video_stream_info(
     FrbVideoStreamInfo self,
     SseSerializer serializer,
   );
+
+  @protected
+  void sse_encode_box_autoadd_u_64(BigInt self, SseSerializer serializer);
 
   @protected
   void sse_encode_engine_info(EngineInfo self, SseSerializer serializer);
@@ -592,6 +663,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_frb_engine_event(
+    FrbEngineEvent self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_frb_health_status(
     FrbHealthStatus self,
     SseSerializer serializer,
@@ -617,6 +694,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
     FrbMediaThumbnail self,
     SseSerializer serializer,
   );
+
+  @protected
+  void sse_encode_frb_peer_stats(FrbPeerStats self, SseSerializer serializer);
 
   @protected
   void sse_encode_frb_performance_metrics(
@@ -818,6 +898,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
     FrbVideoStreamInfo? self,
     SseSerializer serializer,
   );
+
+  @protected
+  void sse_encode_opt_box_autoadd_u_64(BigInt? self, SseSerializer serializer);
 
   @protected
   void sse_encode_u_32(int self, SseSerializer serializer);

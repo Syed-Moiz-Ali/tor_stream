@@ -143,6 +143,11 @@ impl TorrentManager {
         self.state.get(id).await.ok_or(EngineError::TorrentNotFound { id })
     }
 
+    /// Get file metadata for a single file within a torrent.
+    pub async fn file_info(&self, id: TorrentId, file_index: u32) -> Result<crate::models::TorrentFileInfo> {
+        self.session.file_info(id, file_index)
+    }
+
     /// Get the status snapshots for all managed torrents.
     pub async fn get_all_statuses(&self) -> Vec<TorrentInfo> {
         self.state.get_all().await

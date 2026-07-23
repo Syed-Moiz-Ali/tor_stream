@@ -137,6 +137,22 @@ pub async fn get_all_torrents() -> anyhow::Result<Vec<TorrentInfo>> {
         .await)
 }
 
+/// Get file metadata for a single file within a torrent.
+///
+/// The returned [`TorrentFileInfo`] contains the piece length, total piece
+/// count, file byte range, and file size required by the streaming engine to
+/// initialise a pipeline.
+pub async fn get_torrent_file_info(
+    id: u64,
+    file_index: u32,
+) -> anyhow::Result<crate::models::TorrentFileInfo> {
+    get_engine()
+        .context("Engine not initialised")?
+        .file_info(id, file_index)
+        .await
+        .context(format!("Failed to get file info for torrent id={id}, file={file_index}"))
+}
+
 // ── Resume data ────────────────────────────────────────────────────────────────
 
 /// Explicitly persist resume data for a single torrent to SQLite.
@@ -183,3 +199,15 @@ pub fn subscribe_events() -> tokio::sync::broadcast::Receiver<EngineEvent> {
         }
     }
 }
+
+/// Open an async file stream for reading torrent media data with sequential piece prioritization.
+pub async fn open_stream(id: u64, file_index: u32) -> anyhow::Result<Box<dyn crate::session::handle::TorrentStreamReader>> {
+    let engine = get_engine().context("Engine not initialised")?;
+    let handle = engine.session.get(id)?;
+    let info = handle
+        .file_info(file_index as usize)
+        .ok_or_else(|| anyhow::anyhow!("File info not found for torrent id={}, file={}", id, file_index))?;
+
+    handle.stream(info.file_index as usize).await
+}
+

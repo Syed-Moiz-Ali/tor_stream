@@ -5,6 +5,8 @@
 
 import 'frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
+import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
+part 'types.freezed.dart';
 
 class EngineInfo {
   final String version;
@@ -340,6 +342,56 @@ class FrbEngineConfig {
           cacheSizeMb == other.cacheSizeMb;
 }
 
+@freezed
+sealed class FrbEngineEvent with _$FrbEngineEvent {
+  const FrbEngineEvent._();
+
+  const factory FrbEngineEvent.sessionStarted() = FrbEngineEvent_SessionStarted;
+  const factory FrbEngineEvent.sessionStopped() = FrbEngineEvent_SessionStopped;
+  const factory FrbEngineEvent.torrentAdded({
+    required BigInt id,
+    String? name,
+    required BigInt totalBytes,
+  }) = FrbEngineEvent_TorrentAdded;
+  const factory FrbEngineEvent.metadataReceived({
+    required BigInt id,
+    required String name,
+    required BigInt totalBytes,
+  }) = FrbEngineEvent_MetadataReceived;
+  const factory FrbEngineEvent.torrentRemoved({required BigInt id}) =
+      FrbEngineEvent_TorrentRemoved;
+  const factory FrbEngineEvent.downloadStarted({required BigInt id}) =
+      FrbEngineEvent_DownloadStarted;
+  const factory FrbEngineEvent.downloadPaused({required BigInt id}) =
+      FrbEngineEvent_DownloadPaused;
+  const factory FrbEngineEvent.downloadFinished({required BigInt id}) =
+      FrbEngineEvent_DownloadFinished;
+  const factory FrbEngineEvent.progressUpdate({
+    required BigInt id,
+    required FrbTorrentInfo info,
+  }) = FrbEngineEvent_ProgressUpdate;
+  const factory FrbEngineEvent.peerUpdate({
+    required BigInt id,
+    required FrbPeerStats stats,
+  }) = FrbEngineEvent_PeerUpdate;
+  const factory FrbEngineEvent.peerConnected({
+    required BigInt id,
+    required String peerAddr,
+  }) = FrbEngineEvent_PeerConnected;
+  const factory FrbEngineEvent.peerDisconnected({
+    required BigInt id,
+    required String peerAddr,
+    required String reason,
+  }) = FrbEngineEvent_PeerDisconnected;
+  const factory FrbEngineEvent.resumeSaved({required BigInt id}) =
+      FrbEngineEvent_ResumeSaved;
+  const factory FrbEngineEvent.error({
+    BigInt? id,
+    required String message,
+    required bool fatal,
+  }) = FrbEngineEvent_Error;
+}
+
 class FrbHealthStatus {
   final bool isHealthy;
   final PlatformInt64 availableStorageBytes;
@@ -550,6 +602,41 @@ class FrbMediaThumbnail {
           imagePath == other.imagePath &&
           width == other.width &&
           height == other.height;
+}
+
+class FrbPeerStats {
+  final int queued;
+  final int connecting;
+  final int live;
+  final int seen;
+  final int dead;
+
+  const FrbPeerStats({
+    required this.queued,
+    required this.connecting,
+    required this.live,
+    required this.seen,
+    required this.dead,
+  });
+
+  @override
+  int get hashCode =>
+      queued.hashCode ^
+      connecting.hashCode ^
+      live.hashCode ^
+      seen.hashCode ^
+      dead.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is FrbPeerStats &&
+          runtimeType == other.runtimeType &&
+          queued == other.queued &&
+          connecting == other.connecting &&
+          live == other.live &&
+          seen == other.seen &&
+          dead == other.dead;
 }
 
 class FrbPerformanceMetrics {

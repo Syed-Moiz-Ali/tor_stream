@@ -6,7 +6,17 @@
 import 'frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'types.dart';
-export 'types.dart';
+
+Stream<FrbEngineEvent> subscribeTorrentEvents() =>
+    RustLib.instance.api.crateApiSubscribeTorrentEvents();
+
+Future<String> getStreamUrl({
+  required BigInt torrentId,
+  required int fileIndex,
+}) => RustLib.instance.api.crateApiGetStreamUrl(
+  torrentId: torrentId,
+  fileIndex: fileIndex,
+);
 
 EngineInfo getEngineInfo() => RustLib.instance.api.crateApiGetEngineInfo();
 

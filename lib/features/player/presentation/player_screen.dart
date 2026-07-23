@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:video_player/video_player.dart';
 import '../providers/player_provider.dart';
 import 'playback_controls.dart';
 
@@ -19,6 +20,10 @@ class PlayerScreen extends ConsumerStatefulWidget {
 }
 
 class _PlayerScreenState extends ConsumerState<PlayerScreen> {
+  VideoPlayerController? _controller;
+  bool _isInitializingVideo = false;
+  bool _hasVideoError = false;
+
   @override
   void initState() {
     super.initState();
@@ -27,9 +32,40 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
     });
   }
 
+  void _onControllerUpdated() {
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  void _initVideoController(String url) async {
+    if (_controller != null || _isInitializingVideo || _hasVideoError) return;
+    _isInitializingVideo = true;
+    try {
+      final controller = VideoPlayerController.networkUrl(Uri.parse(url));
+      await controller.initialize();
+      if (mounted) {
+        setState(() {
+          _controller = controller;
+          _controller!.addListener(_onControllerUpdated);
+          _controller!.play();
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _hasVideoError = true;
+        });
+      }
+    } finally {
+      _isInitializingVideo = false;
+    }
+  }
+
   @override
   void dispose() {
-    ref.read(playerProvider((torrentId: widget.torrentId, fileIndex: widget.fileIndex)).notifier).stop();
+    _controller?.removeListener(_onControllerUpdated);
+    _controller?.dispose();
     super.dispose();
   }
 
@@ -37,6 +73,10 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
   Widget build(BuildContext context) {
     final streamState = ref.watch(playerProvider((torrentId: widget.torrentId, fileIndex: widget.fileIndex)));
     final cs = Theme.of(context).colorScheme;
+
+    if (streamState.streamUrl != null && _controller == null && !_isInitializingVideo && !_hasVideoError) {
+      _initVideoController(streamState.streamUrl!);
+    }
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -57,7 +97,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
               child: streamState.error != null
                   ? _errorView(cs, streamState.error!)
                   : streamState.isInitialized
-                      ? _videoPlaceholder(cs)
+                      ? _buildPlayerView(cs, streamState)
                       : const CircularProgressIndicator(color: Color(0xFF7C6EF8)),
             ),
           ),
@@ -67,25 +107,83 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
     );
   }
 
-  Widget _videoPlaceholder(ColorScheme cs) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: double.infinity,
-          height: 200,
-          color: Colors.black,
-          child: Center(
-            child: Icon(Icons.movie_rounded,
-              size: 80, color: Colors.white.withValues(alpha: 0.1)),
+  Widget _buildPlayerView(ColorScheme cs, StreamState streamState) {
+    if (_controller != null && _controller!.value.isInitialized) {
+      return Stack(
+        alignment: Alignment.center,
+        children: [
+          AspectRatio(
+            aspectRatio: _controller!.value.aspectRatio,
+            child: VideoPlayer(_controller!),
           ),
-        ),
-        const SizedBox(height: 16),
-        Text('Streaming via Rust Engine',
-          style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 14)),
-        const SizedBox(height: 8),
-        Text('Android Media3 + JNI Bridge',
-          style: TextStyle(color: Colors.white.withValues(alpha: 0.3), fontSize: 12)),
+          if (_controller!.value.isBuffering)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.75),
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: const Color(0xFF7C6EF8).withValues(alpha: 0.5)),
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF7C6EF8)),
+                  ),
+                  SizedBox(width: 10),
+                  Text('Buffering Chunk...',
+                    style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
+                ],
+              ),
+            ),
+        ],
+      );
+    }
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1E1E2A),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFF7C6EF8).withValues(alpha: 0.3)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.stream_rounded, size: 56, color: Color(0xFF7C6EF8)),
+          const SizedBox(height: 12),
+          const Text('Rust Stream Server Active',
+            style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
+          if (streamState.streamUrl != null)
+            SelectableText(
+              streamState.streamUrl!,
+              style: const TextStyle(color: Color(0xFF7C6EF8), fontSize: 12, fontFamily: 'monospace'),
+              textAlign: TextAlign.center,
+            ),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _infoTile('Status', streamState.playback?.status ?? 'active'),
+              _infoTile('Download', '${((streamState.playback?.downloadSpeed ?? 0) / 1024 / 1024).toStringAsFixed(2)} MB/s'),
+              _infoTile('Buffer', '${((streamState.playback?.bufferProgress ?? 0) * 100).toInt()}%'),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _infoTile(String label, String value) {
+    return Column(
+      children: [
+        Text(label, style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 11)),
+        const SizedBox(height: 4),
+        Text(value, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
       ],
     );
   }
@@ -103,6 +201,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
       child: PlaybackControls(
         torrentId: widget.torrentId,
         fileIndex: widget.fileIndex,
+        controller: _controller,
       ),
     );
   }

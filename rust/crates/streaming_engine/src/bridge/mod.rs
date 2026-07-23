@@ -45,9 +45,39 @@ pub async fn prepare_stream(
     Ok(())
 }
 
-/// Start playback of a prepared stream.
+pub async fn ensure_prepared(torrent_id: u64, file_index: u32) -> anyhow::Result<()> {
+    if PIPELINES.contains_key(&(torrent_id, file_index)) {
+        return Ok(());
+    }
+
+    let info = torrent_engine::bridge::get_torrent_file_info(torrent_id, file_index)
+        .await
+        .context("Failed to resolve torrent file info for streaming")?;
+
+    prepare_stream(
+        torrent_id,
+        file_index,
+        info.size,
+        info.piece_length,
+        info.total_pieces,
+        info.start_piece,
+        info.num_pieces,
+    )
+    .await
+    .context("Failed to auto-prepare stream")
+}
+
+/// Start playback of a stream.
+///
+/// If the stream has not been prepared yet, this function will look up the
+/// torrent file metadata from the torrent engine and create the pipeline
+/// automatically.
 pub async fn start_stream(torrent_id: u64, file_index: u32) -> anyhow::Result<()> {
-    get_pipeline(torrent_id, file_index)?.start().await.context("Failed to start stream")
+    ensure_prepared(torrent_id, file_index).await?;
+    get_pipeline(torrent_id, file_index)?
+        .start()
+        .await
+        .context("Failed to start stream")
 }
 
 /// Pause stream playback.

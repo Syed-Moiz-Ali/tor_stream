@@ -88,3 +88,12 @@ pub struct StreamStatistics {
     pub total_bytes_streamed: u64,
     pub read_ahead_seconds: f32,
 }
+
+/// Stream URL details for HTTP byte-range server.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StreamUrl {
+    pub url: String,
+    pub content_type: String,
+    pub total_length: u64,
+}
+

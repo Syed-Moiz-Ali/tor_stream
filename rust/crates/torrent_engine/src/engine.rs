@@ -166,6 +166,10 @@ impl TorrentEngine {
         self.manager.get_all_statuses().await
     }
 
+    pub async fn file_info(&self, id: TorrentId, file_index: u32) -> Result<crate::models::TorrentFileInfo> {
+        self.manager.file_info(id, file_index).await
+    }
+
     pub async fn save_resume_data(&self, id: TorrentId) -> Result<()> {
         self.resume.save(id, "downloading").await
     }

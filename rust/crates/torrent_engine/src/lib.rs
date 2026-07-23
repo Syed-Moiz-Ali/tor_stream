@@ -62,7 +62,7 @@ pub use error::EngineError;
 pub use events::{EngineEvent, EventBus};
 
 /// Core data models.
-pub use models::{TorrentId, TorrentInfo, TorrentStatus};
+pub use models::{PeerStats, TorrentFileInfo, TorrentId, TorrentInfo, TorrentStatus};
 
 /// Version constant consumed by ffi_bridge.
 pub const ENGINE_VERSION: &str = env!("CARGO_PKG_VERSION");

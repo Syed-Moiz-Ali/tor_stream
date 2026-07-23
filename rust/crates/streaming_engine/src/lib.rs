@@ -13,6 +13,7 @@ pub mod scheduler;
 pub mod statistics;
 pub mod bridge;
 pub mod models;
+pub mod stream_server;
 
 pub use error::StreamingError;
 pub use events::StreamingEvent;

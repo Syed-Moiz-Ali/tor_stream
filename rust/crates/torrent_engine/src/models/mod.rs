@@ -102,6 +102,34 @@ pub struct TorrentInfo {
     pub added_at_ms: i64,
 }
 
+// ── TorrentFileInfo ────────────────────────────────────────────────────────────
+
+/// Metadata for a single file inside a torrent.
+///
+/// Used by the streaming engine to build the piece scheduler and byte-range
+/// reader without exposing librqbit types across crate boundaries.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TorrentFileInfo {
+    /// librqbit internal torrent ID.
+    pub torrent_id: TorrentId,
+    /// Index of this file within the torrent.
+    pub file_index: u32,
+    /// Relative path of the file.
+    pub path: String,
+    /// File size in bytes.
+    pub size: u64,
+    /// Byte offset of this file within the torrent.
+    pub offset_in_torrent: u64,
+    /// Piece length for this torrent in bytes (default piece size).
+    pub piece_length: u32,
+    /// Total number of pieces in the torrent.
+    pub total_pieces: u32,
+    /// First piece index that contains data for this file.
+    pub start_piece: u32,
+    /// Number of consecutive pieces covering this file.
+    pub num_pieces: u32,
+}
+
 // ── PeerInfo ───────────────────────────────────────────────────────────────────
 
 /// Statistics about peer connections for a single torrent.

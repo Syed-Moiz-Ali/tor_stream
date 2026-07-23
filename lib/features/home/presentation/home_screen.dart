@@ -26,7 +26,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final torrentsAsync = ref.watch(torrentListProvider);
+    final torrentsAsync = ref.watch(torrentListNotifierProvider);
     final searchQuery = _searchController.text.trim();
     final searchAsync = _showSearch && searchQuery.isNotEmpty
         ? ref.watch(searchResultsProvider(searchQuery))
@@ -144,7 +144,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
               const SizedBox(height: 16),
               FilledButton.icon(
-                onPressed: () => ref.invalidate(torrentListProvider),
+                onPressed: () => ref.read(torrentListNotifierProvider.notifier).refresh(),
                 icon: const Icon(Icons.refresh_rounded),
                 label: const Text('Retry'),
               ),

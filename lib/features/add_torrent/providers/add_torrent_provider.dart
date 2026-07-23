@@ -27,7 +27,7 @@ class AddTorrentState {
 final addMagnetLinkProvider = FutureProvider.family<BigInt, String>((ref, magnetUri) async {
   await ref.watch(rustBridgeInitProvider.future);
   final id = await addMagnet(magnetUri: magnetUri);
-  ref.invalidate(torrentListProvider);
+  await ref.read(torrentListNotifierProvider.notifier).refresh();
   return id;
 });
 
@@ -36,6 +36,7 @@ final addTorrentFileProvider = FutureProvider.family<BigInt, String>((ref, fileP
   final file = File(filePath);
   final data = await file.readAsBytes();
   final id = await addTorrentFile(data: data);
-  ref.invalidate(torrentListProvider);
+  await ref.read(torrentListNotifierProvider.notifier).refresh();
   return id;
 });
+

@@ -5,14 +5,26 @@ import '../../../shared/models/playback_state.dart';
 
 class StreamState {
   final bool isInitialized;
+  final String? streamUrl;
   final PlaybackState? playback;
   final String? error;
 
-  const StreamState({this.isInitialized = false, this.playback, this.error});
+  const StreamState({
+    this.isInitialized = false,
+    this.streamUrl,
+    this.playback,
+    this.error,
+  });
 
-  StreamState copyWith({bool? isInitialized, PlaybackState? playback, String? error}) {
+  StreamState copyWith({
+    bool? isInitialized,
+    String? streamUrl,
+    PlaybackState? playback,
+    String? error,
+  }) {
     return StreamState(
       isInitialized: isInitialized ?? this.isInitialized,
+      streamUrl: streamUrl ?? this.streamUrl,
       playback: playback ?? this.playback,
       error: error,
     );
@@ -28,8 +40,25 @@ class PlayerNotifier extends StateNotifier<StreamState> {
 
   Future<void> init() async {
     try {
-      await getBufferStatus(torrentId: torrentId, fileIndex: fileIndex);
-      state = state.copyWith(isInitialized: true);
+      await startStream(torrentId: torrentId, fileIndex: fileIndex);
+      final url = await getStreamUrl(torrentId: torrentId, fileIndex: fileIndex);
+      final buf = await getBufferStatus(torrentId: torrentId, fileIndex: fileIndex);
+      final stats = await getStreamStatistics(torrentId: torrentId, fileIndex: fileIndex);
+      state = state.copyWith(
+        isInitialized: true,
+        streamUrl: url,
+        playback: PlaybackState(
+          torrentId: torrentId,
+          fileIndex: fileIndex,
+          status: stats.playbackState,
+          position: Duration(milliseconds: buf.currentPositionBytes ~/ 1000),
+          duration: Duration(milliseconds: stats.totalBytesStreamed ~/ 1000),
+          bufferProgress: buf.bufferHealthRatio,
+          speed: stats.currentBitrateBps / 8388608,
+          downloadSpeed: stats.downloadSpeedBps.toDouble(),
+          bufferedBytes: buf.bufferedBytes,
+        ),
+      );
       _startPositionPolling();
     } catch (e) {
       state = state.copyWith(error: 'Failed to init stream: $e');
@@ -60,7 +89,8 @@ class PlayerNotifier extends StateNotifier<StreamState> {
 
   Future<void> seek(Duration position) async {
     try {
-      await seekStream(torrentId: torrentId, fileIndex: fileIndex, offsetBytes: BigInt.from(position.inMilliseconds * 1000));
+      final offsetBytes = BigInt.from(position.inMilliseconds * 1000);
+      await seekStream(torrentId: torrentId, fileIndex: fileIndex, offsetBytes: offsetBytes);
       state = state.copyWith(
         playback: state.playback?.copyWith(position: position),
       );
@@ -80,9 +110,14 @@ class PlayerNotifier extends StateNotifier<StreamState> {
   void _startPositionPolling() {
     _positionTimer?.cancel();
     _positionTimer = Timer.periodic(const Duration(seconds: 2), (_) async {
+      if (!mounted) {
+        _positionTimer?.cancel();
+        return;
+      }
       try {
         final buf = await getBufferStatus(torrentId: torrentId, fileIndex: fileIndex);
         final stats = await getStreamStatistics(torrentId: torrentId, fileIndex: fileIndex);
+        if (!mounted) return;
         state = state.copyWith(
           playback: PlaybackState(
             torrentId: torrentId,
@@ -103,11 +138,13 @@ class PlayerNotifier extends StateNotifier<StreamState> {
   @override
   void dispose() {
     _positionTimer?.cancel();
+    _positionTimer = null;
+    stop();
     super.dispose();
   }
 }
 
-final playerProvider = StateNotifierProvider.family<PlayerNotifier, StreamState, ({BigInt torrentId, int fileIndex})>(
+final playerProvider = StateNotifierProvider.autoDispose.family<PlayerNotifier, StreamState, ({BigInt torrentId, int fileIndex})>(
   (ref, params) => PlayerNotifier(params.torrentId, params.fileIndex),
 );
 

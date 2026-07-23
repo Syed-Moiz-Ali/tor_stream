@@ -35,6 +35,9 @@ pub enum EngineError {
     #[error("Torrent operation failed: {0}")]
     OperationFailed(String),
 
+    #[error("Torrent metadata not yet resolved: id={id}")]
+    TorrentMetadataNotResolved { id: u64 },
+
     // ── Session errors ────────────────────────────────────────────────────────
     #[error("Session creation failed: {0}")]
     SessionCreationFailed(String),

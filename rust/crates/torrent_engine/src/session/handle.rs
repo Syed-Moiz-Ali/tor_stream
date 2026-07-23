@@ -15,6 +15,9 @@ pub struct TorrentHandle {
     pub(super) inner:  Arc<ManagedTorrent>,
 }
 
+pub trait TorrentStreamReader: tokio::io::AsyncRead + tokio::io::AsyncSeek + Unpin + Send {}
+impl<T: tokio::io::AsyncRead + tokio::io::AsyncSeek + Unpin + Send> TorrentStreamReader for T {}
+
 impl TorrentHandle {
     pub(super) fn new(id: TorrentId, inner: Arc<ManagedTorrent>) -> Self {
         Self { id, inner }
@@ -28,6 +31,12 @@ impl TorrentHandle {
     /// 40-hex SHA-1 info-hash string.
     pub fn info_hash(&self) -> String {
         hex::encode(self.inner.info_hash().0)
+    }
+
+    /// Open a native librqbit sequential streaming reader for a file.
+    pub async fn stream(&self, file_index: usize) -> anyhow::Result<Box<dyn TorrentStreamReader>> {
+        let stream = self.inner.clone().stream(file_index).await.map_err(|e| anyhow::anyhow!(e))?;
+        Ok(Box::new(stream))
     }
 
     /// Display name from torrent metadata, or `None` while fetching.
@@ -103,6 +112,70 @@ impl TorrentHandle {
             save_path:        save_path.to_owned(),
             added_at_ms,
         }
+    }
+
+    /// Build a [`TorrentFileInfo`] snapshot for the file at `file_index`.
+    ///
+    /// Returns `None` if the torrent metadata is not yet resolved or the file
+    /// index is out of range.
+    pub fn file_info(&self, mut file_index: usize) -> Option<crate::models::TorrentFileInfo> {
+        self.inner.with_metadata(|m| {
+            let file_infos = m.file_infos.as_slice();
+
+            let is_video = file_infos.get(file_index).map_or(false, |f| {
+                let name = f.relative_filename.to_string_lossy().to_lowercase();
+                name.ends_with(".mp4") || name.ends_with(".mkv") || name.ends_with(".avi")
+                    || name.ends_with(".mov") || name.ends_with(".webm") || name.ends_with(".ts")
+                    || name.ends_with(".m2ts") || name.ends_with(".flv")
+            });
+
+            if !is_video {
+                let mut best_index = file_index;
+                let mut best_size = 0u64;
+
+                for (idx, f) in file_infos.iter().enumerate() {
+                    let name = f.relative_filename.to_string_lossy().to_lowercase();
+                    let file_is_video = name.ends_with(".mp4") || name.ends_with(".mkv")
+                        || name.ends_with(".avi") || name.ends_with(".mov")
+                        || name.ends_with(".webm") || name.ends_with(".ts")
+                        || name.ends_with(".m2ts") || name.ends_with(".flv");
+
+                    if file_is_video && f.len > best_size {
+                        best_size = f.len;
+                        best_index = idx;
+                    }
+                }
+
+                if best_size == 0 {
+                    for (idx, f) in file_infos.iter().enumerate() {
+                        if f.len > best_size {
+                            best_size = f.len;
+                            best_index = idx;
+                        }
+                    }
+                }
+
+                file_index = best_index;
+            }
+
+            let file = file_infos.get(file_index)?;
+            let lengths = m.lengths();
+            let start_piece = file.piece_range.start;
+            let end_piece = file.piece_range.end;
+            let num_pieces = end_piece.saturating_sub(start_piece);
+
+            Some(crate::models::TorrentFileInfo {
+                torrent_id: self.id,
+                file_index: file_index as u32,
+                path: file.relative_filename.to_string_lossy().to_string(),
+                size: file.len,
+                offset_in_torrent: file.offset_in_torrent,
+                piece_length: lengths.default_piece_length(),
+                total_pieces: lengths.total_pieces(),
+                start_piece,
+                num_pieces,
+            })
+        }).ok().flatten()
     }
 
     /// Build a [`PeerStats`] snapshot.

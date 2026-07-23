@@ -1,6 +1,7 @@
 //! FFI API — Phase 1-10 complete pipeline.
 
 use flutter_rust_bridge::frb;
+pub use crate::frb_generated::StreamSink;
 use download_manager::bridge as dl_engine;
 use media_enhancement::bridge as enh_engine;
 use metadata_engine::{bridge as meta_engine, RawFileEntry};
@@ -12,12 +13,33 @@ use torrent_engine::{bridge as engine, EngineConfig};
 
 use crate::types::{
     EngineInfo, FrbArtwork, FrbAudioTrack, FrbBenchmarkSuiteResult, FrbBufferStatus,
-    FrbCacheStatus, FrbContinueWatchingItem, FrbEngineConfig, FrbHealthStatus, FrbLibraryItem,
-    FrbMediaChapter, FrbMediaFile, FrbMediaThumbnail, FrbPerformanceMetrics, FrbProfilerMetrics,
-    FrbRawFileEntry, FrbSearchFilters, FrbSearchResultItem, FrbSessionSnapshot, FrbSortOptions,
-    FrbStorageReport, FrbStreamStatistics, FrbSubtitleConfig, FrbSubtitleTrack, FrbTorrentInfo,
-    FrbTorrentMedia,
+    FrbCacheStatus, FrbContinueWatchingItem, FrbEngineConfig, FrbEngineEvent, FrbHealthStatus,
+    FrbLibraryItem, FrbMediaChapter, FrbMediaFile, FrbMediaThumbnail, FrbPeerStats,
+    FrbPerformanceMetrics, FrbProfilerMetrics, FrbRawFileEntry, FrbSearchFilters,
+    FrbSearchResultItem, FrbSessionSnapshot, FrbSortOptions, FrbStorageReport,
+    FrbStreamStatistics, FrbSubtitleConfig, FrbSubtitleTrack, FrbTorrentInfo, FrbTorrentMedia,
 };
+
+// ── Phase 1: Diagnostics & Event Streaming ────────────────────────────────────
+
+pub async fn subscribe_torrent_events(sink: StreamSink<FrbEngineEvent>) -> anyhow::Result<()> {
+    tokio::spawn(async move {
+        let mut rx = engine::subscribe_events();
+        while let Ok(event) = rx.recv().await {
+            if sink.add(FrbEngineEvent::from(event)).is_err() {
+                break;
+            }
+        }
+    });
+    Ok(())
+}
+
+pub async fn get_stream_url(torrent_id: u64, file_index: u32) -> anyhow::Result<String> {
+    let server = streaming_engine::stream_server::StreamServer::ensure_started().await?;
+    let info = server.stream_url(torrent_id, file_index).await;
+    Ok(info.url)
+}
+
 
 // ── Phase 1: Diagnostics ──────────────────────────────────────────────────────
 

@@ -124,6 +124,7 @@ impl TorrentSession {
                 Some(AddTorrentOptions {
                     paused:        false,
                     output_folder: Some(self.download_dir.to_string_lossy().to_string()),
+                    overwrite:     true,
                     ..AddTorrentOptions::default()
                 }),
             )
@@ -156,6 +157,7 @@ impl TorrentSession {
                 Some(AddTorrentOptions {
                     paused:        false,
                     output_folder: Some(self.download_dir.to_string_lossy().to_string()),
+                    overwrite:     true,
                     ..AddTorrentOptions::default()
                 }),
             )
@@ -165,6 +167,17 @@ impl TorrentSession {
             })?;
 
         self.handle_add_response(response)
+    }
+
+    /// Retrieve file metadata for a single file within a torrent.
+    ///
+    /// Returns an error if the torrent is not found or the torrent metadata is
+    /// not yet resolved (e.g. a magnet link still fetching the info dictionary).
+    pub fn file_info(&self, id: TorrentId, file_index: u32) -> Result<crate::models::TorrentFileInfo> {
+        let handle = self.get(id)?;
+        handle
+            .file_info(file_index as usize)
+            .ok_or_else(|| EngineError::TorrentMetadataNotResolved { id })
     }
 
     /// Retrieve a [`TorrentHandle`] for an existing torrent.

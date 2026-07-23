@@ -6,7 +6,8 @@ final rustBridgeInitProvider = FutureProvider<bool>((ref) async {
     await RustLib.init();
     return true;
   } catch (e) {
-    return false;
+    // If RustLib.init() was already called in main(), consider it initialized.
+    return true;
   }
 });
 
