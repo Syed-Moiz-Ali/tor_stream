@@ -139,6 +139,10 @@ impl TorrentEngine {
         self.manager.add_magnet(magnet_uri).await
     }
 
+    pub async fn add_magnet_stream(&self, magnet_uri: String) -> Result<TorrentId> {
+        self.manager.add_magnet_stream(magnet_uri).await
+    }
+
     pub async fn add_torrent_file(&self, data: Vec<u8>) -> Result<TorrentId> {
         self.manager.add_torrent_file(data).await
     }

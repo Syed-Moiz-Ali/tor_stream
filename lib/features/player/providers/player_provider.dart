@@ -6,12 +6,14 @@ import '../../../shared/models/playback_state.dart';
 class StreamState {
   final bool isInitialized;
   final String? streamUrl;
+  final String? fileName;
   final PlaybackState? playback;
   final String? error;
 
   const StreamState({
     this.isInitialized = false,
     this.streamUrl,
+    this.fileName,
     this.playback,
     this.error,
   });
@@ -19,12 +21,14 @@ class StreamState {
   StreamState copyWith({
     bool? isInitialized,
     String? streamUrl,
+    String? fileName,
     PlaybackState? playback,
     String? error,
   }) {
     return StreamState(
       isInitialized: isInitialized ?? this.isInitialized,
       streamUrl: streamUrl ?? this.streamUrl,
+      fileName: fileName ?? this.fileName,
       playback: playback ?? this.playback,
       error: error,
     );
@@ -40,13 +44,21 @@ class PlayerNotifier extends StateNotifier<StreamState> {
 
   Future<void> init() async {
     try {
+      // Resume the torrent in case it was added paused (stream-only mode).
+      // This allows librqbit to fetch pieces on demand as the streaming server
+      // reads them. The torrent will NOT download to disk beyond what is read.
+      try {
+        await resumeTorrent(id: torrentId);
+      } catch (_) {}
       await startStream(torrentId: torrentId, fileIndex: fileIndex);
       final url = await getStreamUrl(torrentId: torrentId, fileIndex: fileIndex);
       final buf = await getBufferStatus(torrentId: torrentId, fileIndex: fileIndex);
       final stats = await getStreamStatistics(torrentId: torrentId, fileIndex: fileIndex);
+      final torrentInfo = await getTorrentStatus(id: torrentId);
       state = state.copyWith(
         isInitialized: true,
         streamUrl: url,
+        fileName: torrentInfo.name ?? 'Stream #$torrentId',
         playback: PlaybackState(
           torrentId: torrentId,
           fileIndex: fileIndex,
@@ -101,10 +113,13 @@ class PlayerNotifier extends StateNotifier<StreamState> {
 
   Future<void> stop() async {
     _positionTimer?.cancel();
+    _positionTimer = null;
     try {
       await stopStream(torrentId: torrentId, fileIndex: fileIndex);
     } catch (_) {}
-    state = const StreamState();
+    if (mounted) {
+      state = const StreamState();
+    }
   }
 
   void _startPositionPolling() {
@@ -116,8 +131,15 @@ class PlayerNotifier extends StateNotifier<StreamState> {
       }
       try {
         final buf = await getBufferStatus(torrentId: torrentId, fileIndex: fileIndex);
+        if (!mounted) {
+          _positionTimer?.cancel();
+          return;
+        }
         final stats = await getStreamStatistics(torrentId: torrentId, fileIndex: fileIndex);
-        if (!mounted) return;
+        if (!mounted) {
+          _positionTimer?.cancel();
+          return;
+        }
         state = state.copyWith(
           playback: PlaybackState(
             torrentId: torrentId,
@@ -139,7 +161,9 @@ class PlayerNotifier extends StateNotifier<StreamState> {
   void dispose() {
     _positionTimer?.cancel();
     _positionTimer = null;
-    stop();
+    try {
+      stopStream(torrentId: torrentId, fileIndex: fileIndex);
+    } catch (_) {}
     super.dispose();
   }
 }

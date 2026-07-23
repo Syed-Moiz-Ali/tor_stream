@@ -1,14 +1,71 @@
 
-E/flutter (19816): [ERROR:flutter/runtime/dart_vm_initializer.cc(40)] Unhandled Exception: AnyhowException(Failed to add magnet
-E/flutter (19816):
-E/flutter (19816): Caused by:
-E/flutter (19816):     Session error: error creating a new file (because allow_overwrite = false) "/data/user/0/com.example.tor_stream/app_flutter/Torrent Downloaded From XXXClub.to .nfo")
-E/flutter (19816): #0      SimpleDecoder.decode (package:flutter_rust_bridge/src/codec/base.dart:32:9)
-E/flutter (19816): #1      SseCodec._decode (package:flutter_rust_bridge/src/codec/sse.dart:45:55)
-E/flutter (19816): #2      SseCodec.decodeObject (package:flutter_rust_bridge/src/codec/sse.dart:35:12)
-E/flutter (19816): <asynchronous suspension>
-E/flutter (19816): #3      addMagnetLinkProvider.<anonymous closure> (package:tor_stream/features/add_torrent/providers/add_torrent_provider.dart:29:14)
-E/flutter (19816): <asynchronous suspension>
-E/flutter (19816): #4      FutureHandlerProviderElementMixin.handleFuture.<anonymous closure>.<anonymous closure> (package:riverpod/src/async_notifier/base.dart:355:9)
-E/flutter (19816): <asynchronous suspension>
-E/flutter (19816):
+3
+W/ImageReader_JNI(22909): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+
+════════ Exception caught by foundation library ════════════════════════════════
+'package:flutter/src/widgets/framework.dart': Failed assertion: line 5246 pos 12: '_lifecycleState != _ElementLifecycle.defunct': is not true.
+════════════════════════════════════════════════════════════════════════════════
+2
+W/ImageReader_JNI(22909): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+
+════════ Exception caught by foundation library ════════════════════════════════
+'package:flutter/src/widgets/framework.dart': Failed assertion: line 5246 pos 12: '_lifecycleState != _ElementLifecycle.defunct': is not true.
+════════════════════════════════════════════════════════════════════════════════
+2
+W/ImageReader_JNI(22909): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+E/flutter (22909): [ERROR:flutter/runtime/dart_vm_initializer.cc(40)] Unhandled Exception: 'package:flutter/src/widgets/framework.dart': Failed assertion: line 5246 pos 12: '_lifecycleState != _ElementLifecycle.defunct': is not true.
+E/flutter (22909): #0      _AssertionError._doThrowNew (dart:core-patch/errors_patch.dart:67:4)
+E/flutter (22909): #1      _AssertionError._throwNew (dart:core-patch/errors_patch.dart:49:5)
+E/flutter (22909): #2      Element.markNeedsBuild (package:flutter/src/widgets/framework.dart:5246:12)
+E/flutter (22909): #3      ConsumerStatefulElement.watch.<anonymous closure>.<anonymous closure> (package:flutter_riverpod/src/consumer.dart:566:20)
+E/flutter (22909): #4      ProviderBase.addListener.<anonymous closure> (package:riverpod/src/framework/provider_base.dart:98:41)
+E/flutter (22909): #5      _RootZone.runBinaryGuarded (dart:async/zone.dart:1790:10)
+E/flutter (22909): #6      ProviderElementBase._notifyListeners.<anonymous closure> (package:riverpod/src/framework/element.dart:542:28)
+E/flutter (22909): #7      ResultData.map (package:riverpod/src/result.dart:74:16)
+E/flutter (22909): #8      ProviderElementBase._notifyListeners (package:riverpod/src/framework/element.dart:536:14)
+E/flutter (22909): #9      ProviderElementBase.setState (package:riverpod/src/framework/element.dart:140:7)
+E/flutter (22909): #10     StateNotifier.state= (package:state_notifier/state_notifier.dart:227:31)
+E/flutter (22909): #11     PlayerNotifier._startPositionPolling.<anonymous closure> (package:tor_stream/features/player/providers/player_provider.dart:127:9)
+E/flutter (22909): <asynchronous suspension>
+E/flutter (22909):
+E/flutter (22909): [ERROR:flutter/runtime/dart_vm_initializer.cc(40)] Unhandled Exception: 'package:flutter/src/widgets/framework.dart': Failed assertion: line 5246 pos 12: '_lifecycleState != _ElementLifecycle.defunct': is not true.
+E/flutter (22909): #0      _AssertionError._doThrowNew (dart:core-patch/errors_patch.dart:67:4)
+E/flutter (22909): #1      _AssertionError._throwNew (dart:core-patch/errors_patch.dart:49:5)
+E/flutter (22909): #2      Element.markNeedsBuild (package:flutter/src/widgets/framework.dart:5246:12)
+E/flutter (22909): #3      ConsumerStatefulElement.watch.<anonymous closure>.<anonymous closure> (package:flutter_riverpod/src/consumer.dart:566:20)
+E/flutter (22909): #4      ProviderBase.addListener.<anonymous closure> (package:riverpod/src/framework/provider_base.dart:98:41)
+E/flutter (22909): #5      _RootZone.runBinaryGuarded (dart:async/zone.dart:1790:10)
+E/flutter (22909): #6      ProviderElementBase._notifyListeners.<anonymous closure> (package:riverpod/src/framework/element.dart:542:28)
+E/flutter (22909): #7      ResultData.map (package:riverpod/src/result.dart:74:16)
+E/flutter (22909): #8      ProviderElementBase._notifyListeners (package:riverpod/src/framework/element.dart:536:14)
+E/flutter (22909): #9      ProviderElementBase.setState (package:riverpod/src/framework/element.dart:140:7)
+E/flutter (22909): #10     StateNotifier.state= (package:state_notifier/state_notifier.dart:227:31)
+E/flutter (22909): #11     PlayerNotifier._startPositionPolling.<anonymous closure> (package:tor_stream/features/player/providers/player_provider.dart:127:9)
+E/flutter (22909): <asynchronous suspension>
+E/flutter (22909):
+2
+W/ImageReader_JNI(22909): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+
+════════ Exception caught by foundation library ════════════════════════════════
+'package:flutter/src/widgets/framework.dart': Failed assertion: line 5246 pos 12: '_lifecycleState != _ElementLifecycle.defunct': is not true.
+════════════════════════════════════════════════════════════════════════════════
+3
+W/ImageReader_JNI(22909): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+
+════════ Exception caught by foundation library ════════════════════════════════
+'package:flutter/src/widgets/framework.dart': Failed assertion: line 5246 pos 12: '_lifecycleState != _ElementLifecycle.defunct': is not true.
+════════════════════════════════════════════════════════════════════════════════
+3
+W/ImageReader_JNI(22909): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+
+════════ Exception caught by foundation library ════════════════════════════════
+'package:flutter/src/widgets/framework.dart': Failed assertion: line 5246 pos 12: '_lifecycleState != _ElementLifecycle.defunct': is not true.
+════════════════════════════════════════════════════════════════════════════════
+3
+W/ImageReader_JNI(22909): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+
+════════ Exception caught by foundation library ════════════════════════════════
+'package:flutter/src/widgets/framework.dart': Failed assertion: line 5246 pos 12: '_lifecycleState != _ElementLifecycle.defunct': is not true.
+════════════════════════════════════════════════════════════════════════════════
+3
+W/ImageReader_JNI(22909): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers

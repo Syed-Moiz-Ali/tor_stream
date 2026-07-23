@@ -9,6 +9,8 @@ final torrentEventsStreamProvider = StreamProvider<FrbEngineEvent>((ref) async* 
   yield* subscribeTorrentEvents();
 });
 
+final streamOnlyTorrentIdsProvider = StateProvider<Set<BigInt>>((ref) => {});
+
 class TorrentListNotifier extends StateNotifier<AsyncValue<List<TorrentState>>> {
   TorrentListNotifier(this.ref) : super(const AsyncValue.loading()) {
     _init();
@@ -16,6 +18,7 @@ class TorrentListNotifier extends StateNotifier<AsyncValue<List<TorrentState>>> 
 
   final Ref ref;
   StreamSubscription<FrbEngineEvent>? _subscription;
+  Timer? _timer;
 
   Future<void> _init() async {
     try {
@@ -23,6 +26,8 @@ class TorrentListNotifier extends StateNotifier<AsyncValue<List<TorrentState>>> 
     } catch (_) {}
 
     await refresh();
+
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) => refresh());
 
     try {
       _subscription = subscribeTorrentEvents().listen((event) {
@@ -36,6 +41,16 @@ class TorrentListNotifier extends StateNotifier<AsyncValue<List<TorrentState>>> 
           downloadPaused: (id) => refresh(),
           downloadFinished: (id) => refresh(),
           progressUpdate: (id, info) {
+            final streamOnlyIds = ref.read(streamOnlyTorrentIdsProvider);
+            if (streamOnlyIds.contains(id)) {
+              state.whenData((list) {
+                if (list.any((t) => t.id == id)) {
+                  state = AsyncValue.data(list.where((t) => t.id != id).toList());
+                }
+              });
+              return;
+            }
+
             final updatedItem = TorrentState.fromFrb(info);
             state.whenData((list) {
               final index = list.indexWhere((t) => t.id == id);
@@ -61,7 +76,12 @@ class TorrentListNotifier extends StateNotifier<AsyncValue<List<TorrentState>>> 
   Future<void> refresh() async {
     try {
       final infos = await getAllTorrents();
-      state = AsyncValue.data(infos.map((info) => TorrentState.fromFrb(info)).toList());
+      final streamOnlyIds = ref.read(streamOnlyTorrentIdsProvider);
+      final list = infos
+          .where((info) => !streamOnlyIds.contains(info.id))
+          .map((info) => TorrentState.fromFrb(info))
+          .toList();
+      state = AsyncValue.data(list);
     } catch (_) {
       state = AsyncValue.data(state.value ?? const []);
     }
@@ -69,6 +89,7 @@ class TorrentListNotifier extends StateNotifier<AsyncValue<List<TorrentState>>> 
 
   @override
   void dispose() {
+    _timer?.cancel();
     _subscription?.cancel();
     super.dispose();
   }

@@ -77,6 +77,37 @@ impl TorrentManager {
         Ok(id)
     }
 
+    /// Add a magnet URI in stream-only mode.
+    ///
+    /// The torrent is added **paused** to a temp directory — no data is written
+    /// to the permanent download folder. We intentionally skip SQLite persistence
+    /// so the entry vanishes cleanly when removed.
+    #[instrument(skip(self))]
+    pub async fn add_magnet_stream(&self, magnet_uri: String) -> Result<TorrentId> {
+        let (id, handle) = self.session.add_magnet_stream(magnet_uri).await?;
+
+        let tmp_dir = std::env::temp_dir()
+            .join("torstream_stream_cache")
+            .to_string_lossy()
+            .to_string();
+        let now_ms    = chrono_now_ms();
+        let name      = handle.name();
+        let total     = handle.total_bytes();
+
+        // Add to in-memory tracker only — no SQLite, no resume data.
+        let info = handle.torrent_info(&tmp_dir, now_ms);
+        self.state.update(info).await;
+
+        self.event_bus.publish(EngineEvent::TorrentAdded {
+            id,
+            name,
+            total_bytes: total,
+        });
+
+        info!(id, "Stream-only magnet added (paused, temp dir)");
+        Ok(id)
+    }
+
     /// Add a torrent from raw `.torrent` file bytes.
     #[instrument(skip(self, data), fields(bytes = data.len()))]
     pub async fn add_torrent_file(&self, data: Vec<u8>) -> Result<TorrentId> {

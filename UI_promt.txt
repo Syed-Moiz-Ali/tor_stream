@@ -1,0 +1,77 @@
+Analyze the entire Flutter project first and understand the application's purpose, user flows, screens, target users, and existing design system before making UI changes.
+
+Your goal is to transform the application into a modern 2026-quality product with a premium, clean, minimal, highly polished, and user-friendly experience while preserving all existing functionality and business logic.
+
+Requirements:
+
+- Audit every screen, component, dialog, bottom sheet, navigation flow, form, and user interaction.
+
+- Identify UI inconsistencies, poor spacing, weak hierarchy, cluttered layouts, outdated components, and confusing user flows.
+
+- Enhance the overall UI, UX, style, layout, responsiveness, and usability across the entire application.
+
+- Maintain a minimalist design language with strong visual hierarchy and excellent readability.
+
+- Use Material 3 design principles and modern Flutter UI patterns.
+
+- Create a consistent design system across the application.
+
+- Improve spacing, alignment, typography, iconography, elevations, corner radius, shadows, and visual balance.
+
+- Reduce visual clutter and make screens easier to scan and understand.
+
+- Improve empty states, loading states, error states, success states, and feedback interactions.
+
+- Enhance forms, inputs, dropdowns, search bars, filters, buttons, cards, lists, tables, and navigation components.
+
+- Improve touch targets, accessibility, readability, and overall usability.
+
+- Add smooth micro-interactions, subtle animations, transitions, and feedback where they improve user experience.
+
+- Ensure animations feel premium and purposeful, never excessive.
+
+- Improve responsiveness for phones, tablets, and different screen sizes.
+
+- Create a more professional dashboard experience with better information hierarchy and presentation.
+
+- Improve data visualization, cards, summaries, statistics, and analytics sections where applicable.
+
+- Make the application feel faster, cleaner, and easier to use.
+
+- Ensure all screens follow a unified visual language.
+
+- Use modern Material 3 components instead of outdated patterns whenever appropriate.
+
+- Improve navigation experience and reduce unnecessary user actions.
+
+- Keep the design elegant, professional, and production-ready.
+
+Important Rules:
+
+- Do not change business logic.
+
+- Do not break existing functionality.
+
+- Do not remove existing features.
+
+- Do not redesign blindly; understand each screen's purpose first.
+
+- Preserve all API integrations and workflows.
+
+- Avoid flashy or overcomplicated UI.
+
+- Focus on premium simplicity, clarity, consistency, and usability.
+
+- Every UI decision should improve the user experience.
+
+Before implementing changes:
+
+1. Analyze the current UI/UX.
+
+2. Identify weaknesses and improvement opportunities.
+
+3. Prioritize high-impact improvements.
+
+4. Implement enhancements incrementally screen by screen.
+
+The final result should feel like a professionally designed 2026 production application with a premium, modern, minimal, clean, clear, intuitive, and highly polished user experience.

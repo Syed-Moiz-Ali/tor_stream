@@ -86,15 +86,17 @@ class TorrentTile extends ConsumerWidget {
   }
 
   Widget _statusChip(String label, ColorScheme cs) {
-    final color = switch (torrent.status) {
-      FrbTorrentStatus.downloading => const Color(0xFF2ECC71),
-      FrbTorrentStatus.seeding => const Color(0xFF3498DB),
-      FrbTorrentStatus.paused => const Color(0xFFFFB347),
-      FrbTorrentStatus.error => const Color(0xFFE74C3C),
-      FrbTorrentStatus.checking => const Color(0xFF9B59B6),
-      FrbTorrentStatus.fetchingMetadata => const Color(0xFF7C6EF8),
-      FrbTorrentStatus.queued => const Color(0xFF6B6B80),
-    };
+    final color = torrent.isCompleted
+        ? const Color(0xFF2ECC71)
+        : switch (torrent.status) {
+            FrbTorrentStatus.downloading => const Color(0xFF7C6EF8),
+            FrbTorrentStatus.seeding => const Color(0xFF2ECC71),
+            FrbTorrentStatus.paused => const Color(0xFFFFB347),
+            FrbTorrentStatus.error => const Color(0xFFE74C3C),
+            FrbTorrentStatus.checking => const Color(0xFF9B59B6),
+            FrbTorrentStatus.fetchingMetadata => const Color(0xFF3498DB),
+            FrbTorrentStatus.queued => const Color(0xFF6B6B80),
+          };
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
@@ -102,8 +104,17 @@ class TorrentTile extends ConsumerWidget {
         borderRadius: BorderRadius.circular(6),
         border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
-      child: Text(label,
-        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: color)),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (torrent.isCompleted) ...[
+            const Icon(Icons.check_circle_rounded, size: 11, color: Color(0xFF2ECC71)),
+            const SizedBox(width: 4),
+          ],
+          Text(label,
+            style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: color)),
+        ],
+      ),
     );
   }
 

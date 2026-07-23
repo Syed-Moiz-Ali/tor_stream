@@ -2,17 +2,26 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:video_player/video_player.dart';
+import '../../../shared/services/stream_store.dart';
 import '../providers/player_provider.dart';
 import 'playback_controls.dart';
+import '../../home/providers/torrent_list_provider.dart';
 
 class PlayerScreen extends ConsumerStatefulWidget {
   final BigInt torrentId;
   final int fileIndex;
+  final bool isStreamOnly;
+  /// The original magnet URI — only set for stream-only sessions.
+  /// Used to update StreamStore (position, title) and to re-add the torrent
+  /// on resume when the app was killed between sessions.
+  final String? magnetUri;
 
   const PlayerScreen({
     super.key,
     required this.torrentId,
     required this.fileIndex,
+    this.isStreamOnly = false,
+    this.magnetUri,
   });
 
   @override
@@ -24,18 +33,42 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
   bool _isInitializingVideo = false;
   bool _hasVideoError = false;
 
+  // ── Helpers ───────────────────────────────────────────────────────────────
+
+  /// Save the current position to StreamStore (stream-only) or nothing
+  /// (download mode is handled by a separate download history store).
+  void _savePosition() {
+    if (!widget.isStreamOnly || widget.magnetUri == null) return;
+    if (_controller == null || !_controller!.value.isInitialized) return;
+    final streamState = ref.read(
+      playerProvider((torrentId: widget.torrentId, fileIndex: widget.fileIndex)),
+    );
+    StreamStore.instance.savePosition(
+      widget.magnetUri!,
+      positionMs: _controller!.value.position.inMilliseconds,
+      durationMs: _controller!.value.duration.inMilliseconds,
+      title: streamState.fileName,
+    );
+  }
+
+  // ── Lifecycle ─────────────────────────────────────────────────────────────
+
   @override
   void initState() {
     super.initState();
     Future.microtask(() {
-      ref.read(playerProvider((torrentId: widget.torrentId, fileIndex: widget.fileIndex)).notifier).init();
+      ref
+          .read(playerProvider(
+              (torrentId: widget.torrentId, fileIndex: widget.fileIndex))
+              .notifier)
+          .init();
     });
   }
 
   void _onControllerUpdated() {
-    if (mounted) {
-      setState(() {});
-    }
+    if (!mounted) return;
+    setState(() {});
+    _savePosition();
   }
 
   void _initVideoController(String url) async {
@@ -44,19 +77,35 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
     try {
       final controller = VideoPlayerController.networkUrl(Uri.parse(url));
       await controller.initialize();
-      if (mounted) {
-        setState(() {
-          _controller = controller;
-          _controller!.addListener(_onControllerUpdated);
-          _controller!.play();
-        });
+      if (!mounted) return;
+
+      // Restore saved position for stream-only mode from Hive.
+      if (widget.isStreamOnly && widget.magnetUri != null) {
+        final saved = StreamStore.instance.get(widget.magnetUri!);
+        if (saved != null &&
+            saved.positionMs > 3000 &&
+            saved.durationMs > 0 &&
+            saved.positionMs < saved.durationMs - 5000) {
+          await controller.seekTo(saved.position);
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Resumed from ${saved.formattedPosition}'),
+              duration: const Duration(seconds: 2),
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: const Color(0xFF7C6EF8),
+            ),
+          );
+        }
       }
+
+      setState(() {
+        _controller = controller;
+        _controller!.addListener(_onControllerUpdated);
+        _controller!.play();
+      });
     } catch (_) {
-      if (mounted) {
-        setState(() {
-          _hasVideoError = true;
-        });
-      }
+      if (mounted) setState(() => _hasVideoError = true);
     } finally {
       _isInitializingVideo = false;
     }
@@ -64,8 +113,19 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
 
   @override
   void dispose() {
+    // Save final position before tearing down.
+    _savePosition();
+
     _controller?.removeListener(_onControllerUpdated);
     _controller?.dispose();
+
+    if (widget.isStreamOnly) {
+      // Remove torrent from librqbit AND delete all temp chunk files from disk.
+      // The magnet URI is already safely stored in Hive for future resume.
+      ref.read(
+        removeTorrentProvider((id: widget.torrentId, deleteFiles: true)),
+      );
+    }
     super.dispose();
   }
 
@@ -98,7 +158,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
                   ? _errorView(cs, streamState.error!)
                   : streamState.isInitialized
                       ? _buildPlayerView(cs, streamState)
-                      : const CircularProgressIndicator(color: Color(0xFF7C6EF8)),
+                      : _initialBufferingView(cs),
             ),
           ),
           _controlsSection(cs, streamState),
@@ -217,6 +277,41 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
           Text(error,
             style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7)),
             textAlign: TextAlign.center),
+        ],
+      ),
+    );
+  }
+
+  Widget _initialBufferingView(ColorScheme cs) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const SizedBox(
+            width: 48,
+            height: 48,
+            child: CircularProgressIndicator(
+              color: Color(0xFF7C6EF8),
+              strokeWidth: 3,
+            ),
+          ),
+          const SizedBox(height: 24),
+          const Text(
+            'Connecting & Buffering Stream...',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Fetching initial pieces from BitTorrent peers...',
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.6),
+              fontSize: 13,
+            ),
+          ),
         ],
       ),
     );

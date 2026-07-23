@@ -48,12 +48,16 @@ class TorrentState {
 
   bool get isDownloading => status == FrbTorrentStatus.downloading;
   bool get isSeeding => status == FrbTorrentStatus.seeding;
+  bool get isCompleted => progress >= 1.0 || status == FrbTorrentStatus.seeding;
   bool get isPaused => status == FrbTorrentStatus.paused;
   bool get isChecking => status == FrbTorrentStatus.checking;
   bool get isError => status == FrbTorrentStatus.error;
   bool get isFetchingMetadata => status == FrbTorrentStatus.fetchingMetadata;
 
   String get statusLabel {
+    if (isCompleted) {
+      return 'Completed';
+    }
     switch (status) {
       case FrbTorrentStatus.queued:
         return 'Queued';
@@ -64,7 +68,7 @@ class TorrentState {
       case FrbTorrentStatus.downloading:
         return 'Downloading';
       case FrbTorrentStatus.seeding:
-        return 'Seeding';
+        return 'Completed';
       case FrbTorrentStatus.paused:
         return 'Paused';
       case FrbTorrentStatus.error:
@@ -93,11 +97,12 @@ class TorrentState {
   }
 
   int? get etaSeconds {
-    if (downloadSpeed <= 0 || progress >= 1.0) return null;
+    if (downloadSpeed <= 0 || isCompleted) return null;
     return ((totalSize - downloaded) / downloadSpeed).round();
   }
 
   String get formattedEta {
+    if (isCompleted) return 'Completed';
     final s = etaSeconds;
     if (s == null || s <= 0) return '--';
     final h = s ~/ 3600;

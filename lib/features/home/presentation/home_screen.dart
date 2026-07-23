@@ -32,55 +32,86 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ? ref.watch(searchResultsProvider(searchQuery))
         : null;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: _showSearch
-            ? TextField(
-                controller: _searchController,
-                autofocus: true,
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  hintText: 'Search torrents, movies, files...',
-                  hintStyle: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.4),
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        appBar: AppBar(
+          title: _showSearch
+              ? TextField(
+                  controller: _searchController,
+                  autofocus: true,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    hintText: 'Search torrents, movies, files...',
+                    hintStyle: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.4),
+                    ),
+                    border: InputBorder.none,
                   ),
-                  border: InputBorder.none,
+                  onChanged: (_) => setState(() {}),
+                )
+              : const Text('TorStream'),
+          actions: [
+            if (!_showSearch)
+              IconButton(
+                icon: const Icon(Icons.search_rounded),
+                onPressed: () => setState(() => _showSearch = true),
+              ),
+            if (_showSearch)
+              IconButton(
+                icon: const Icon(Icons.close_rounded),
+                onPressed: () {
+                  setState(() {
+                    _showSearch = false;
+                    _searchController.clear();
+                  });
+                },
+              ),
+            if (!_showSearch)
+              IconButton(
+                icon: const Icon(Icons.history_rounded),
+                tooltip: 'Watch History',
+                onPressed: () => context.push('/history'),
+              ),
+            if (!_showSearch)
+              IconButton(
+                icon: const Icon(Icons.settings_rounded),
+                onPressed: () => context.push('/settings'),
+              ),
+          ],
+          bottom: _showSearch && searchQuery.isNotEmpty
+              ? null
+              : const TabBar(
+                  indicatorColor: Color(0xFF7C6EF8),
+                  labelColor: Color(0xFF7C6EF8),
+                  unselectedLabelColor: Colors.white54,
+                  tabs: [
+                    Tab(
+                      icon: Icon(Icons.downloading_rounded, size: 20),
+                      text: 'Downloading',
+                    ),
+                    Tab(
+                      icon: Icon(Icons.check_circle_outline_rounded, size: 20),
+                      text: 'Downloaded',
+                    ),
+                  ],
                 ),
-                onChanged: (_) => setState(() {}),
-              )
-            : const Text('TorStream'),
-        actions: [
-          if (!_showSearch)
-            IconButton(
-              icon: const Icon(Icons.search_rounded),
-              onPressed: () => setState(() => _showSearch = true),
-            ),
-          if (_showSearch)
-            IconButton(
-              icon: const Icon(Icons.close_rounded),
-              onPressed: () {
-                setState(() {
-                  _showSearch = false;
-                  _searchController.clear();
-                });
-              },
-            ),
-          if (!_showSearch)
-            IconButton(
-              icon: const Icon(Icons.settings_rounded),
-              onPressed: () => context.push('/settings'),
-            ),
-        ],
+        ),
+        body: _showSearch && searchQuery.isNotEmpty
+            ? _buildSearchResults(searchAsync!)
+            : TabBarView(
+                children: [
+                  _buildTorrentList(torrentsAsync, isCompletedTab: false),
+                  _buildTorrentList(torrentsAsync, isCompletedTab: true),
+                ],
+              ),
+        floatingActionButton: _showSearch
+            ? null
+            : FloatingActionButton(
+                onPressed: () => context.push('/add-torrent'),
+                child: const Icon(Icons.add_rounded),
+              ),
       ),
-      body: _showSearch && searchQuery.isNotEmpty
-          ? _buildSearchResults(searchAsync!)
-          : _buildTorrentList(torrentsAsync),
-      floatingActionButton: _showSearch
-          ? null
-          : FloatingActionButton(
-              onPressed: () => context.push('/add-torrent'),
-              child: const Icon(Icons.add_rounded),
-            ),
     );
   }
 
@@ -120,7 +151,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Widget _buildTorrentList(AsyncValue<List<TorrentState>> torrentsAsync) {
+  Widget _buildTorrentList(AsyncValue<List<TorrentState>> torrentsAsync, {required bool isCompletedTab}) {
     final cs = Theme.of(context).colorScheme;
     return torrentsAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -153,7 +184,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ),
       ),
       data: (torrents) {
-        if (torrents.isEmpty) {
+        final filteredTorrents = torrents.where((t) {
+          return isCompletedTab ? t.isCompleted : !t.isCompleted;
+        }).toList();
+
+        if (filteredTorrents.isEmpty) {
           return Center(
             child: Padding(
               padding: const EdgeInsets.all(24),
@@ -161,29 +196,33 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(
-                    Icons.movie_creation_rounded,
+                    isCompletedTab ? Icons.check_circle_outline_rounded : Icons.downloading_rounded,
                     size: 64,
                     color: cs.onSurface.withValues(alpha: 0.2),
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'No torrents yet',
+                    isCompletedTab ? 'No downloaded torrents yet' : 'No active downloads',
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Add a magnet link or torrent file to get started',
+                    isCompletedTab
+                        ? 'Completed downloads will automatically show up here'
+                        : 'Add a magnet link or torrent file to start downloading',
                     style: TextStyle(
                       color: cs.onSurface.withValues(alpha: 0.6),
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 24),
-                  FilledButton.icon(
-                    onPressed: () => context.push('/add-torrent'),
-                    icon: const Icon(Icons.add_rounded),
-                    label: const Text('Add Torrent'),
-                  ),
+                  if (!isCompletedTab) ...[
+                    const SizedBox(height: 24),
+                    FilledButton.icon(
+                      onPressed: () => context.push('/add-torrent'),
+                      icon: const Icon(Icons.add_rounded),
+                      label: const Text('Add Torrent'),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -192,8 +231,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
         return ListView.builder(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          itemCount: torrents.length,
-          itemBuilder: (_, i) => TorrentTile(torrent: torrents[i]),
+          itemCount: filteredTorrents.length,
+          itemBuilder: (_, i) => TorrentTile(torrent: filteredTorrents[i]),
         );
       },
     );

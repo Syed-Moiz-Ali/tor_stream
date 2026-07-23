@@ -5,9 +5,12 @@ import 'package:path_provider/path_provider.dart';
 import 'bridge/bridge.dart';
 import 'app/app.dart';
 
+import 'shared/services/stream_store.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  await StreamStore.instance.init();
   await RustLib.init();
 
   final dir = await getApplicationDocumentsDirectory();

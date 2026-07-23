@@ -22,6 +22,7 @@ use librqbit::{
     Session as LibSession, SessionOptions, DhtSessionConfig,
 };
 use tracing::{debug, info, instrument, warn};
+use std::env;
 
 use crate::config::EngineConfig;
 use crate::error::{EngineError, Result};
@@ -121,11 +122,52 @@ impl TorrentSession {
             .inner
             .add_torrent(
                 AddTorrent::from_url(&magnet_uri),
-                Some(AddTorrentOptions {
-                    paused:        false,
-                    output_folder: Some(self.download_dir.to_string_lossy().to_string()),
-                    overwrite:     true,
-                    ..AddTorrentOptions::default()
+                Some({
+                    let mut opts = AddTorrentOptions::default();
+                    opts.paused = false;
+                    opts.output_folder = Some(self.download_dir.to_string_lossy().to_string());
+                    opts.overwrite = true;
+                    opts
+                }),
+            )
+            .await
+            .map_err(|e| EngineError::SessionError(e.to_string()))?;
+
+        self.handle_add_response(response)
+    }
+
+    /// Add a magnet URI in **stream-only mode**.
+    ///
+    /// The torrent is added to a temporary directory and kept **paused** so
+    /// librqbit never eagerly downloads the full file to disk. The streaming
+    /// engine fetches pieces on demand as the player reads them. The caller is
+    /// responsible for removing the torrent (with `delete_files = true`) when
+    /// the user exits the player.
+    #[instrument(skip(self), fields(magnet = %magnet_uri.chars().take(60).collect::<String>()))]
+    pub async fn add_magnet_stream(&self, magnet_uri: String) -> Result<(TorrentId, TorrentHandle)> {
+        if !magnet_uri.starts_with("magnet:") {
+            return Err(EngineError::InvalidMagnet { uri: magnet_uri });
+        }
+
+        debug!("Adding magnet link (stream-only, paused)");
+
+        // Use the system temp directory so nothing lands in the permanent
+        // download folder.
+        let tmp_dir = env::temp_dir().join("torstream_stream_cache");
+        let _ = std::fs::create_dir_all(&tmp_dir);
+
+        let response = self
+            .inner
+            .add_torrent(
+                AddTorrent::from_url(&magnet_uri),
+                Some({
+                    let mut opts = AddTorrentOptions::default();
+                    // Start paused — the streaming engine will trigger reads;
+                    // librqbit will only fetch the pieces actually requested.
+                    opts.paused = true;
+                    opts.output_folder = Some(tmp_dir.to_string_lossy().to_string());
+                    opts.overwrite = true;
+                    opts
                 }),
             )
             .await

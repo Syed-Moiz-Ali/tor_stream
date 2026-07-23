@@ -92,6 +92,10 @@ pub async fn add_magnet(magnet_uri: String) -> anyhow::Result<u64> {
     engine::add_magnet(magnet_uri).await
 }
 
+pub async fn add_magnet_stream(magnet_uri: String) -> anyhow::Result<u64> {
+    engine::add_magnet_stream(magnet_uri).await
+}
+
 pub async fn add_torrent_file(data: Vec<u8>) -> anyhow::Result<u64> {
     engine::add_torrent_file(data).await
 }

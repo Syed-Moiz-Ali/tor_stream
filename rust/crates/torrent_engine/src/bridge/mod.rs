@@ -63,12 +63,18 @@ pub async fn add_magnet(magnet_uri: String) -> anyhow::Result<u64> {
         .context("Failed to add magnet")
 }
 
-/// Add a torrent from the raw bytes of a `.torrent` file.
+/// Add a magnet URI for streaming only — starts paused, stored in temp dir.
 ///
-/// Returns the [`TorrentId`] assigned to the new torrent.
-///
-/// # Errors
-/// - [`EngineError::InvalidTorrentFile`] if the bytes are not a valid .torrent.
+/// No data is ever written to the permanent download directory. The torrent
+/// is automatically removed (with file deletion) when the player exits.
+pub async fn add_magnet_stream(magnet_uri: String) -> anyhow::Result<u64> {
+    get_engine()
+        .context("Engine not initialised")?
+        .add_magnet_stream(magnet_uri)
+        .await
+        .context("Failed to add magnet (stream mode)")
+}
+
 pub async fn add_torrent_file(data: Vec<u8>) -> anyhow::Result<u64> {
     get_engine()
         .context("Engine not initialised")?
