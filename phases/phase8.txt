@@ -1,0 +1,417 @@
+# PHASE 8 — Download Manager & Media Library
+
+You are a Principal Software Engineer from Netflix, Plex, Stremio, Jellyfin and qBittorrent.
+
+Expertise:
+
+- Rust
+- Flutter
+- Android
+- SQLite
+- Torrent Systems
+- Storage Systems
+- Media Library Design
+- Download Managers
+
+Continue from Phase 7.
+
+Implement ONLY Phase 8.
+
+Do NOT rewrite previous phases.
+
+=========================================================
+PROJECT GOAL
+=========================================================
+
+Build a professional Download Manager and Media Library.
+
+This phase transforms the streaming engine into a complete media application.
+
+Users must be able to browse, organize, manage and download torrent media efficiently.
+
+The Download Manager must work seamlessly with the existing streaming engine.
+
+=========================================================
+OBJECTIVES
+=========================================================
+
+Implement:
+
+• Download Manager
+• Download Queue
+• Media Library
+• Storage Manager
+• Favorites
+• Recently Played
+• Continue Watching
+• Download Priorities
+• Bandwidth Controls
+• Storage Cleanup
+
+=========================================================
+MODULES
+=========================================================
+
+download_manager/
+
+queue/
+
+library/
+
+storage/
+
+history/
+
+favorites/
+
+continue_watching/
+
+bandwidth/
+
+cleanup/
+
+events/
+
+bridge/
+
+=========================================================
+DOWNLOAD MANAGER
+=========================================================
+
+Support:
+
+Start Download
+
+Pause Download
+
+Resume Download
+
+Cancel Download
+
+Delete Download
+
+Retry Failed Download
+
+Move Download Location
+
+Rename Download
+
+Download Priority
+
+=========================================================
+DOWNLOAD QUEUE
+=========================================================
+
+Implement:
+
+Queue Manager
+
+Concurrent Downloads
+
+Maximum Active Downloads
+
+Queue Ordering
+
+Automatic Retry
+
+Priority Scheduling
+
+=========================================================
+MEDIA LIBRARY
+=========================================================
+
+Automatically organize media into:
+
+Movies
+
+TV Shows
+
+Anime
+
+Documentaries
+
+Music Videos
+
+Downloaded Files
+
+Continue Watching
+
+Recently Added
+
+Recently Played
+
+Favorites
+
+=========================================================
+CONTINUE WATCHING
+=========================================================
+
+Persist:
+
+Playback Position
+
+Last Played Time
+
+Progress Percentage
+
+Media Artwork
+
+Automatically resume playback from the previous position.
+
+=========================================================
+SEARCH
+=========================================================
+
+Support searching by:
+
+Title
+
+Filename
+
+Torrent Name
+
+Folder
+
+Tags
+
+Genre (future-ready)
+
+=========================================================
+SORTING
+=========================================================
+
+Support:
+
+Name
+
+Date Added
+
+Recently Played
+
+Progress
+
+File Size
+
+Download Status
+
+=========================================================
+FILTERS
+=========================================================
+
+Implement:
+
+Downloading
+
+Completed
+
+Paused
+
+Streaming
+
+Failed
+
+Favorites
+
+Continue Watching
+
+=========================================================
+BANDWIDTH CONTROL
+=========================================================
+
+Support:
+
+Download Limit
+
+Upload Limit
+
+Per Torrent Limits
+
+Global Limits
+
+Unlimited Mode
+
+Wi-Fi Only Downloads
+
+=========================================================
+STORAGE MANAGEMENT
+=========================================================
+
+Implement:
+
+Free Space Detection
+
+Low Storage Warning
+
+Automatic Cleanup
+
+Temporary Cache Cleanup
+
+Delete Incomplete Files
+
+Move Library Location
+
+=========================================================
+DOWNLOAD PRIORITIES
+=========================================================
+
+Support:
+
+Highest
+
+High
+
+Normal
+
+Low
+
+Lowest
+
+Queue should dynamically reorder.
+
+=========================================================
+LIBRARY DATABASE
+=========================================================
+
+Persist:
+
+Torrent Metadata
+
+Media Metadata
+
+Playback Progress
+
+Artwork Paths
+
+Subtitle Information
+
+Audio Tracks
+
+Watch History
+
+Favorites
+
+=========================================================
+PUBLIC RUST API
+=========================================================
+
+Implement:
+
+startDownload()
+
+pauseDownload()
+
+resumeDownload()
+
+cancelDownload()
+
+deleteDownload()
+
+getLibrary()
+
+searchLibrary()
+
+getContinueWatching()
+
+addFavorite()
+
+removeFavorite()
+
+setBandwidthLimit()
+
+=========================================================
+FLUTTER UI SUPPORT
+=========================================================
+
+Expose typed models for:
+
+Library
+
+Downloads
+
+History
+
+Favorites
+
+Continue Watching
+
+Queue
+
+Bandwidth Settings
+
+=========================================================
+TESTING
+=========================================================
+
+Test:
+
+100+ torrents
+
+Large files
+
+Low storage
+
+Interrupted downloads
+
+Duplicate downloads
+
+Moving storage locations
+
+Queue stress tests
+
+=========================================================
+PERFORMANCE
+=========================================================
+
+Startup Library Load
+
+< 1 second
+
+Queue Processing
+
+Real-time
+
+Database Queries
+
+Optimized
+
+Minimal RAM usage
+
+=========================================================
+DOCUMENTATION
+=========================================================
+
+Provide:
+
+Download Lifecycle
+
+Queue Architecture
+
+Library Architecture
+
+Database Schema
+
+Storage Management Flow
+
+=========================================================
+RULES
+=========================================================
+
+Production-quality Rust.
+
+No placeholder implementations.
+
+No TODO comments.
+
+No fake code.
+
+Everything must compile.
+
+Follow Clean Architecture.
+
+Do NOT implement LAN streaming.
+
+Do NOT implement Watch Party.
+
+Do NOT implement AI.
+
+Stop after Phase 8 is complete.

@@ -1,0 +1,152 @@
+You are a Principal Systems Engineer from Plex/Stremio with expertise in:
+
+- BitTorrent Protocol
+- Rust
+- Flutter
+- Android NDK
+- libtorrent-rasterbar
+- Streaming Media
+- ExoPlayer
+- Clean Architecture
+- Distributed Systems
+
+Your task is NOT to write application code.
+
+Your task is to design a complete production-grade architecture for an Android-first Torrent Streaming Engine.
+
+This document will serve as the foundation for every future development phase.
+
+--------------------------------------------------
+PROJECT GOAL
+--------------------------------------------------
+
+Build a modern Android application using Flutter for UI and Rust for the core engine.
+
+The application should stream torrent videos almost instantly without waiting for the entire download.
+
+The system must be designed for:
+
+• Fast startup
+• Low memory usage
+• Stable playback
+• Professional architecture
+• High scalability
+• Future desktop support
+• Future watch party support
+• Future AI subtitle support
+
+No cloud streaming server.
+
+The user's device performs all downloading and streaming locally.
+
+--------------------------------------------------
+TECH STACK
+--------------------------------------------------
+
+Frontend
+
+Flutter
+Riverpod
+GoRouter
+Material 3
+
+Backend Engine
+
+Rust Stable
+Tokio
+libtorrent-rasterbar
+SQLite
+Serde
+Tracing
+
+Communication
+
+flutter_rust_bridge
+
+Video Playback
+
+ExoPlayer (Android)
+
+--------------------------------------------------
+DESIGN REQUIREMENTS
+--------------------------------------------------
+
+Produce detailed documentation covering:
+
+1. Overall System Architecture
+
+2. Module Responsibilities
+
+3. Folder Structure
+
+4. Clean Architecture Layers
+
+5. Data Flow
+
+6. Component Diagram
+
+7. Threading Model
+
+8. Async Task Architecture
+
+9. Memory Management Strategy
+
+10. Streaming Pipeline
+
+11. Buffer Pipeline
+
+12. Piece Priority Algorithm
+
+13. Error Handling Strategy
+
+14. Logging Strategy
+
+15. Configuration Management
+
+16. Storage Design
+
+17. Resume Data Design
+
+18. FFI Design
+
+19. Android Integration
+
+20. Testing Strategy
+
+21. Performance Targets
+
+22. Security Considerations
+
+23. Future Extensibility
+
+--------------------------------------------------
+DELIVERABLES
+--------------------------------------------------
+
+Produce a professional Technical Design Document (TDD).
+
+The document must include:
+
+- Architecture diagrams
+- Sequence diagrams
+- Module dependency graph
+- API boundaries
+- Folder structure
+- Coding standards
+- Naming conventions
+- State diagrams
+- Streaming lifecycle
+- Torrent lifecycle
+- Playback lifecycle
+
+--------------------------------------------------
+RULES
+--------------------------------------------------
+
+Do NOT write application code.
+
+Do NOT implement any feature.
+
+Only produce the complete architecture and engineering documentation.
+
+This document should be detailed enough that a senior engineer can implement the project phase by phase without changing the architecture later.

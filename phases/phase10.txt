@@ -1,0 +1,335 @@
+# PHASE 10 — Search, Indexing & Content Discovery Engine
+
+You are a Principal Search & Media Discovery Engineer from Netflix, Plex, Jellyfin, Kodi and Google.
+
+Expertise:
+
+- Rust
+- SQLite
+- Full-Text Search
+- Search Algorithms
+- Indexing Systems
+- Media Libraries
+- Performance Engineering
+
+Continue from Phase 9.
+
+Implement ONLY Phase 10.
+
+Do NOT rewrite previous phases.
+
+=========================================================
+PROJECT GOAL
+=========================================================
+
+Build a production-grade Search, Indexing and Content Discovery Engine.
+
+The goal is to make searching thousands of media files instantaneous.
+
+This engine must support:
+
+• Fast Search
+• Smart Filters
+• Library Indexing
+• Duplicate Detection
+• Continue Watching Discovery
+• Recently Added
+• Recently Played
+• Favorites
+• Collections
+
+=========================================================
+OBJECTIVES
+=========================================================
+
+Implement:
+
+• Full Text Search
+• Metadata Indexer
+• Search Engine
+• Filter Engine
+• Collection Engine
+• Recommendation Hooks (future-ready)
+• Index Manager
+
+=========================================================
+MODULES
+=========================================================
+
+search_engine/
+
+index_engine/
+
+metadata_index/
+
+filter_engine/
+
+collection_engine/
+
+history_index/
+
+favorites_index/
+
+events/
+
+bridge/
+
+=========================================================
+SEARCH FEATURES
+=========================================================
+
+Support searching by:
+
+Movie Title
+
+Torrent Name
+
+Filename
+
+Folder Name
+
+Subtitle Name
+
+Audio Language
+
+Resolution
+
+Codec
+
+Year
+
+Duration
+
+Tags
+
+=========================================================
+FILTERS
+=========================================================
+
+Support:
+
+Movies
+
+TV Shows
+
+Anime
+
+Completed
+
+Downloading
+
+Streaming
+
+Paused
+
+Favorites
+
+Continue Watching
+
+Recently Added
+
+Recently Played
+
+Downloaded
+
+=========================================================
+SORTING
+=========================================================
+
+Support:
+
+Name
+
+Date Added
+
+Last Played
+
+Progress
+
+Duration
+
+File Size
+
+Download Status
+
+Alphabetical
+
+=========================================================
+COLLECTIONS
+=========================================================
+
+Implement:
+
+Favorites
+
+Watch Later
+
+Recently Added
+
+Recently Played
+
+Continue Watching
+
+Downloaded
+
+Custom Collections
+
+=========================================================
+INDEXING
+=========================================================
+
+Automatically index:
+
+Torrent Metadata
+
+Media Metadata
+
+Subtitle Metadata
+
+Audio Metadata
+
+Playback Progress
+
+Artwork
+
+History
+
+=========================================================
+DUPLICATE DETECTION
+=========================================================
+
+Detect:
+
+Duplicate Torrents
+
+Duplicate Movies
+
+Duplicate Episodes
+
+Different Qualities
+
+Different Encodings
+
+=========================================================
+PERFORMANCE
+=========================================================
+
+Target:
+
+Library
+
+100,000 media files
+
+Search
+
+<50 ms
+
+Filtering
+
+Instant
+
+Sorting
+
+Instant
+
+=========================================================
+DATABASE
+=========================================================
+
+Optimize SQLite.
+
+Create proper indexes.
+
+Use prepared statements.
+
+Minimize allocations.
+
+=========================================================
+PUBLIC API
+=========================================================
+
+Implement:
+
+search()
+
+filter()
+
+sort()
+
+createCollection()
+
+deleteCollection()
+
+addToCollection()
+
+removeFromCollection()
+
+getContinueWatching()
+
+=========================================================
+FLUTTER MODELS
+=========================================================
+
+Expose:
+
+SearchResult
+
+Collection
+
+LibraryItem
+
+SearchFilters
+
+SortOptions
+
+=========================================================
+TESTING
+=========================================================
+
+Test:
+
+100,000 media items
+
+Rapid search
+
+Rapid filtering
+
+Large libraries
+
+Duplicate files
+
+Corrupted metadata
+
+=========================================================
+DOCUMENTATION
+=========================================================
+
+Provide:
+
+Index Architecture
+
+Search Architecture
+
+Database Schema
+
+Performance Report
+
+=========================================================
+RULES
+=========================================================
+
+Production-quality Rust.
+
+No placeholder implementations.
+
+No TODO comments.
+
+Everything must compile.
+
+Do NOT implement LAN streaming.
+
+Do NOT implement Watch Party.
+
+Do NOT implement AI.
+
+Stop after Phase 10.

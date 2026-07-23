@@ -1,0 +1,30 @@
+[package]
+name     = "ffi_bridge"
+version.workspace  = true
+edition.workspace  = true
+authors.workspace  = true
+license.workspace  = true
+
+[lib]
+name       = "tor_stream"
+crate-type = ["cdylib", "staticlib"]
+
+[dependencies]
+torrent_core        = { path = "../torrent_core" }
+torrent_engine      = { path = "../torrent_engine" }
+metadata_engine     = { path = "../metadata_engine" }
+streaming_engine    = { path = "../streaming_engine" }
+player_bridge       = { path = "../player_bridge" }
+performance_engine  = { path = "../performance_engine" }
+reliability_engine  = { path = "../reliability_engine" }
+download_manager    = { path = "../download_manager" }
+media_enhancement   = { path = "../media_enhancement" }
+search_engine       = { path = "../search_engine" }
+flutter_rust_bridge = "=2.12.0"
+anyhow              = { workspace = true }
+tracing             = { workspace = true }
+
+
+
+[dev-dependencies]
+tokio = { workspace = true }

@@ -1,0 +1,359 @@
+# PHASE 6 — Performance Optimization & Streaming Intelligence
+
+You are a Principal Performance Engineer from Netflix, Google Android Media3, qBittorrent and Plex.
+
+Expertise:
+
+- Rust
+- Android
+- Performance Engineering
+- Memory Management
+- Storage Systems
+- Streaming Systems
+- BitTorrent Protocol
+- Async Runtime Optimization
+
+Continue from Phase 5.
+
+Implement ONLY Phase 6.
+
+Do NOT rewrite previous phases.
+
+=========================================================
+OBJECTIVE
+=========================================================
+
+Transform the streaming engine into a high-performance media engine capable of streaming large 4K movies smoothly on Android devices.
+
+Optimize every subsystem.
+
+=========================================================
+PERFORMANCE GOALS
+=========================================================
+
+Startup
+
+Target:
+3–5 seconds
+
+Seek
+
+Target:
+<2 seconds
+
+Buffer Recovery
+
+Target:
+<1 second
+
+Memory
+
+Target:
+Less than 150MB additional RAM during playback
+
+CPU
+
+Target:
+Minimal CPU usage
+
+Battery
+
+Optimize for long playback sessions.
+
+=========================================================
+MODULES
+=========================================================
+
+performance/
+
+memory/
+
+cache_optimizer/
+
+piece_optimizer/
+
+disk_optimizer/
+
+network_optimizer/
+
+metrics/
+
+profiler/
+
+benchmark/
+
+=========================================================
+MEMORY OPTIMIZATION
+=========================================================
+
+Implement:
+
+Adaptive memory cache
+
+LRU eviction
+
+Pinned playback pieces
+
+Memory pressure handling
+
+Zero-copy buffers where possible
+
+Object pooling
+
+Reusable byte buffers
+
+Avoid unnecessary allocations
+
+=========================================================
+PIECE SCHEDULER OPTIMIZATION
+=========================================================
+
+Improve scheduling.
+
+Consider:
+
+Playback position
+
+Seek prediction
+
+Sequential downloading
+
+Rare piece strategy
+
+Peer speed
+
+Peer reliability
+
+Latency
+
+Piece availability
+
+=========================================================
+SMART READ AHEAD
+=========================================================
+
+Implement adaptive read ahead.
+
+Depending on:
+
+Movie bitrate
+
+Network speed
+
+Available peers
+
+Playback speed
+
+Storage performance
+
+Buffer health
+
+Automatically expand or shrink the read ahead window.
+
+=========================================================
+DISK CACHE
+=========================================================
+
+Optimize:
+
+Sequential writes
+
+Random reads
+
+Disk fragmentation
+
+Cache validation
+
+Persistent cache
+
+Fast startup
+
+=========================================================
+NETWORK OPTIMIZATION
+=========================================================
+
+Improve:
+
+Peer selection
+
+Connection reuse
+
+Tracker performance
+
+Parallel downloads
+
+Connection balancing
+
+Adaptive download rate
+
+Adaptive upload rate
+
+=========================================================
+STREAMING INTELLIGENCE
+=========================================================
+
+Predict playback.
+
+Prioritize pieces before they are needed.
+
+Detect upcoming seeks.
+
+Optimize around user behavior.
+
+Maintain continuous playback whenever possible.
+
+=========================================================
+METRICS
+=========================================================
+
+Collect:
+
+Startup Time
+
+Seek Time
+
+Buffer Events
+
+Cache Hit Rate
+
+Peer Count
+
+Average Download Speed
+
+Average Upload Speed
+
+CPU Usage
+
+Memory Usage
+
+Disk Throughput
+
+=========================================================
+PROFILER
+=========================================================
+
+Implement internal profiling.
+
+Measure:
+
+Scheduler latency
+
+Disk latency
+
+Read latency
+
+JNI overhead
+
+Cache efficiency
+
+Buffer recovery time
+
+=========================================================
+BENCHMARKS
+=========================================================
+
+Benchmark:
+
+1080p H264
+
+4K H265
+
+Small MP4
+
+Large MKV
+
+Anime
+
+Multi-file torrents
+
+Low-end Android
+
+High-end Android
+
+=========================================================
+AUTO TUNING
+=========================================================
+
+Automatically adjust:
+
+Cache size
+
+Buffer size
+
+Read ahead
+
+Download concurrency
+
+Connection limits
+
+Based on device resources.
+
+=========================================================
+PUBLIC API
+=========================================================
+
+Provide:
+
+getPerformanceMetrics()
+
+getBenchmarkResults()
+
+resetProfiler()
+
+exportMetrics()
+
+=========================================================
+TESTING
+=========================================================
+
+Stress test:
+
+100GB torrents
+
+Weak network
+
+Network interruptions
+
+Rapid seeking
+
+Pause/resume
+
+Device sleep
+
+Background playback
+
+=========================================================
+DOCUMENTATION
+=========================================================
+
+Provide:
+
+Optimization report
+
+Benchmark report
+
+Architecture updates
+
+Performance rationale
+
+=========================================================
+RULES
+=========================================================
+
+Production-quality Rust.
+
+No placeholder implementations.
+
+No TODOs.
+
+Benchmark every optimization.
+
+Document every performance improvement.
+
+Do NOT implement downloads UI.
+
+Do NOT implement cloud features.
+
+Do NOT implement watch party.
+
+Stop after Phase 6 is complete.

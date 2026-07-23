@@ -1,0 +1,278 @@
+# PHASE 1 — Project Foundation (Flutter + Rust + Android)
+
+You are a Principal Software Engineer with expertise in:
+
+- Rust
+- Flutter
+- Android NDK
+- flutter_rust_bridge
+- Clean Architecture
+- Android Media Framework
+- Mobile Systems Programming
+
+Your task is to build ONLY Phase 1.
+
+Do NOT implement torrent downloading.
+
+Do NOT implement streaming.
+
+Do NOT implement playback.
+
+Only create a production-grade project foundation.
+
+=========================================================
+PROJECT
+=========================================================
+
+Build an Android-first Torrent Streaming application.
+
+The application architecture must be production-ready from day one.
+
+Flutter is ONLY responsible for:
+
+- UI
+- Navigation
+- State Management
+- Theme
+- Calling Rust APIs
+
+Rust is responsible for ALL future business logic.
+
+Flutter must NEVER contain:
+
+- Torrent logic
+- Networking engine
+- Buffer logic
+- Download scheduler
+
+=========================================================
+TECH STACK
+=========================================================
+
+Frontend
+
+- Flutter Stable
+- Riverpod
+- GoRouter
+- Material 3
+- media_kit (future integration only)
+
+Native
+
+- Rust Stable
+- flutter_rust_bridge
+- Tokio
+- Serde
+- thiserror
+- anyhow
+- tracing
+
+Android
+
+- NDK
+- CMake
+- Gradle Kotlin DSL
+
+=========================================================
+PROJECT STRUCTURE
+=========================================================
+
+Create the following structure.
+
+torrent_stream/
+
+    flutter_app/
+
+        lib/
+
+            core/
+
+            config/
+
+            features/
+
+            shared/
+
+            routing/
+
+            services/
+
+            widgets/
+
+        android/
+
+        assets/
+
+    rust/
+
+        src/
+
+            bridge/
+
+            common/
+
+            config/
+
+            errors/
+
+            logging/
+
+            models/
+
+            utils/
+
+        Cargo.toml
+
+=========================================================
+FLUTTER REQUIREMENTS
+=========================================================
+
+Create
+
+- App Theme
+- Routing
+- Riverpod setup
+- Dependency Injection
+- Environment Config
+- Logging
+- App Entry Point
+
+Do NOT create business features.
+
+=========================================================
+RUST REQUIREMENTS
+=========================================================
+
+Setup
+
+- Workspace
+- Cargo
+- Modules
+- Logging
+- Error Handling
+- Configuration
+- flutter_rust_bridge
+
+Create only placeholder APIs such as:
+
+initializeEngine()
+
+shutdownEngine()
+
+getVersion()
+
+healthCheck()
+
+These should compile and return valid responses.
+
+Do NOT add torrent logic.
+
+=========================================================
+ANDROID REQUIREMENTS
+=========================================================
+
+Configure
+
+- Android NDK
+- flutter_rust_bridge
+- Rust build scripts
+- ABI support
+- Release configuration
+
+Ensure successful Android compilation.
+
+=========================================================
+ERROR HANDLING
+=========================================================
+
+Use
+
+thiserror
+
+anyhow
+
+Implement a unified Result type.
+
+=========================================================
+LOGGING
+=========================================================
+
+Use tracing.
+
+Provide
+
+DEBUG
+
+INFO
+
+WARN
+
+ERROR
+
+=========================================================
+DELIVERABLES
+=========================================================
+
+Generate
+
+1. Folder structure
+
+2. Cargo configuration
+
+3. Flutter configuration
+
+4. Rust workspace
+
+5. Android configuration
+
+6. flutter_rust_bridge setup
+
+7. Build scripts
+
+8. Compiling application
+
+9. README
+
+10. Architecture explanation
+
+=========================================================
+TESTING
+=========================================================
+
+Create
+
+Unit Tests
+
+Bridge Tests
+
+Android Build Verification
+
+=========================================================
+RULES
+=========================================================
+
+Write production-quality code.
+
+No TODOs.
+
+No fake implementations.
+
+No placeholder architecture.
+
+No unnecessary dependencies.
+
+Follow Clean Architecture.
+
+Follow SOLID.
+
+Use idiomatic Rust.
+
+Use modern Flutter practices.
+
+Every public API must be documented.
+
+The project must compile successfully before continuing to the next phase.
+
+Do NOT implement any future feature.
+
+Stop after Phase 1 is complete.

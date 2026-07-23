@@ -1,0 +1,36 @@
+[package]
+name     = "download_manager"
+version.workspace  = true
+edition.workspace  = true
+authors.workspace  = true
+license.workspace  = true
+
+[lib]
+name       = "download_manager"
+crate-type = ["rlib"]
+
+[dependencies]
+# ── Workspace ──────────────────────────────────────────────────────────────────
+tokio              = { workspace = true }
+serde              = { workspace = true }
+serde_json         = { workspace = true }
+thiserror          = { workspace = true }
+anyhow             = { workspace = true }
+tracing            = { workspace = true }
+bytes              = { workspace = true }
+dashmap            = { workspace = true }
+once_cell          = { workspace = true }
+rusqlite           = { workspace = true }
+
+# ── Internal ───────────────────────────────────────────────────────────────────
+torrent_core       = { path = "../torrent_core" }
+torrent_engine     = { path = "../torrent_engine" }
+metadata_engine    = { path = "../metadata_engine" }
+streaming_engine   = { path = "../streaming_engine" }
+performance_engine = { path = "../performance_engine" }
+reliability_engine = { path = "../reliability_engine" }
+
+[dev-dependencies]
+tokio    = { workspace = true, features = ["test-util"] }
+tempfile = "3"
+anyhow   = { workspace = true }

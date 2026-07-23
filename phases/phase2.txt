@@ -1,0 +1,374 @@
+# PHASE 2 — Production Torrent Session Manager
+
+You are a Principal Systems Engineer from qBittorrent, Stremio and Plex.
+
+Expertise:
+
+- Rust
+- BitTorrent Protocol
+- libtorrent-rasterbar
+- Android NDK
+- Flutter Rust Bridge
+- Tokio
+- Async Systems Programming
+
+Continue from Phase 1.
+
+DO NOT rewrite existing project.
+
+Only implement Phase 2.
+
+==================================================
+OBJECTIVE
+==================================================
+
+Build a production-grade Torrent Session Manager.
+
+This phase is ONLY responsible for communicating with the BitTorrent network.
+
+No streaming.
+
+No player.
+
+No buffering.
+
+No watch party.
+
+==================================================
+RESPONSIBILITIES
+==================================================
+
+The engine must:
+
+• Initialize libtorrent
+• Create torrent session
+• Bootstrap DHT
+• Discover peers
+• Connect to trackers
+• Handle magnet links
+• Handle .torrent files
+• Maintain torrent state
+• Pause
+• Resume
+• Remove torrents
+• Save fast resume data
+• Restore previous session
+
+==================================================
+ARCHITECTURE
+==================================================
+
+Create the following modules.
+
+torrent_engine/
+
+    session/
+
+    torrent/
+
+    peer/
+
+    tracker/
+
+    dht/
+
+    resume/
+
+    models/
+
+    events/
+
+    config/
+
+    bridge/
+
+Each module must have a single responsibility.
+
+==================================================
+SESSION LIFECYCLE
+==================================================
+
+Engine Start
+
+↓
+
+Initialize Session
+
+↓
+
+Configure Settings
+
+↓
+
+Enable DHT
+
+↓
+
+Enable Trackers
+
+↓
+
+Start Session
+
+↓
+
+Wait For Requests
+
+==================================================
+TORRENT LIFECYCLE
+==================================================
+
+Add Magnet
+
+↓
+
+Download Metadata
+
+↓
+
+Verify Metadata
+
+↓
+
+Create Torrent Handle
+
+↓
+
+Start Download
+
+↓
+
+Receive Alerts
+
+↓
+
+Update State
+
+==================================================
+SUPPORTED FEATURES
+==================================================
+
+✔ Magnet Links
+
+✔ .torrent Files
+
+✔ DHT
+
+✔ Local Peer Discovery
+
+✔ UPnP
+
+✔ NAT-PMP
+
+✔ LSD
+
+✔ Tracker Communication
+
+✔ Resume Data
+
+✔ Fast Resume
+
+✔ Torrent Removal
+
+✔ Pause
+
+✔ Resume
+
+==================================================
+RUST PUBLIC API
+==================================================
+
+Implement:
+
+initialize_engine()
+
+shutdown_engine()
+
+add_magnet()
+
+add_torrent_file()
+
+pause_torrent()
+
+resume_torrent()
+
+remove_torrent()
+
+get_torrent_status()
+
+get_all_torrents()
+
+save_resume_data()
+
+restore_resume_data()
+
+==================================================
+EVENT SYSTEM
+==================================================
+
+Create strongly typed events.
+
+Examples:
+
+SessionStarted
+
+SessionStopped
+
+MetadataReceived
+
+TorrentAdded
+
+TorrentRemoved
+
+PeerConnected
+
+PeerDisconnected
+
+DownloadStarted
+
+DownloadPaused
+
+DownloadFinished
+
+ResumeSaved
+
+TrackerUpdated
+
+==================================================
+CONFIGURATION
+==================================================
+
+Configurable:
+
+Download Folder
+
+Connection Limit
+
+Upload Limit
+
+Download Limit
+
+Listening Port
+
+Cache Size
+
+Anonymous Mode
+
+DHT Enabled
+
+LSD Enabled
+
+UPnP Enabled
+
+NAT-PMP Enabled
+
+==================================================
+ERROR HANDLING
+==================================================
+
+Never panic.
+
+Use:
+
+thiserror
+
+anyhow
+
+Return typed errors.
+
+==================================================
+LOGGING
+==================================================
+
+Use tracing.
+
+Log:
+
+Session creation
+
+Torrent addition
+
+Peer discovery
+
+Tracker updates
+
+Resume loading
+
+Errors
+
+==================================================
+FLUTTER BRIDGE
+==================================================
+
+Expose every public API through flutter_rust_bridge.
+
+Flutter must NOT know libtorrent exists.
+
+==================================================
+TESTING
+==================================================
+
+Write tests for:
+
+Session startup
+
+Magnet parsing
+
+Torrent loading
+
+Pause
+
+Resume
+
+Remove
+
+Resume persistence
+
+Invalid torrents
+
+Invalid magnets
+
+==================================================
+DELIVERABLES
+==================================================
+
+Provide:
+
+- Folder structure
+- Rust modules
+- Cargo updates
+- Source code
+- Unit tests
+- Integration tests
+- Documentation
+- Build instructions
+
+==================================================
+RULES
+==================================================
+
+Write production-quality Rust.
+
+No placeholder code.
+
+No TODO comments.
+
+No fake implementations.
+
+Use idiomatic async Rust.
+
+Follow SOLID.
+
+Follow Clean Architecture.
+
+Every module should have a single responsibility.
+
+Every public API must be documented.
+
+Do NOT implement streaming.
+
+Do NOT implement buffering.
+
+Do NOT implement playback.
+
+Stop after Phase 2 is complete.

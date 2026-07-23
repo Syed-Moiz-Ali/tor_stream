@@ -1,0 +1,60 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# VS Code
+#.vscode/
+
+# Flutter/Dart/Pub related
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+/build/
+/coverage/
+
+# Symbolication related
+app.*.symbols
+
+# Obfuscation related
+app.*.map.json
+
+# Android Studio build artifacts
+/android/app/debug
+/android/app/profile
+/android/app/release
+
+# ── Rust ──────────────────────────────────────────────────────────────────────
+/rust/target/
+
+# ── Android JNI libs (compiled from Rust — not committed, built by scripts) ───
+# Uncomment the lines below if you prefer to regenerate .so on every build.
+# If you commit them, CI is faster but the repo is larger.
+# /android/app/src/main/jniLibs/
+
+# ── flutter_rust_bridge generated files ──────────────────────────────────────
+# These ARE committed so teammates can build without running codegen.
+# Remove from .gitignore if you want to regenerate on every CI run instead.
+# lib/bridge/generated/frb_generated.dart
+# lib/bridge/generated/frb_generated.io.dart
+# lib/bridge/generated/frb_generated.web.dart
+# rust/crates/ffi_bridge/src/frb_generated.rs
+

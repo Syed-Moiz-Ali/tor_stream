@@ -1,0 +1,382 @@
+# PHASE 3 — Metadata Engine & Media Analysis
+
+You are a Principal Media Systems Engineer from Plex, Stremio, qBittorrent and VLC.
+
+Continue from Phase 2.
+
+Do NOT rewrite previous code.
+
+Implement ONLY Phase 3.
+
+=========================================================
+PROJECT GOAL
+=========================================================
+
+Build a production-grade Metadata Engine.
+
+This phase is responsible for understanding the contents of a torrent.
+
+It must analyze torrent metadata and determine exactly which files are suitable for streaming.
+
+No playback.
+
+No streaming.
+
+No buffering.
+
+=========================================================
+OBJECTIVES
+=========================================================
+
+Implement a Metadata Engine capable of:
+
+• Waiting for torrent metadata
+• Parsing torrent file structure
+• Detecting playable media
+• Detecting subtitles
+• Detecting artwork
+• Detecting sample videos
+• Detecting extras
+• Building a complete media model
+
+=========================================================
+FOLDER STRUCTURE
+=========================================================
+
+Create:
+
+metadata_engine/
+
+    parser/
+
+    analyzer/
+
+    detector/
+
+    subtitle/
+
+    artwork/
+
+    media/
+
+    ffprobe/
+
+    models/
+
+    bridge/
+
+=========================================================
+SUPPORTED MEDIA
+=========================================================
+
+Video
+
+MKV
+
+MP4
+
+AVI
+
+MOV
+
+WEBM
+
+MPEG
+
+TS
+
+M2TS
+
+Audio
+
+AAC
+
+AC3
+
+DTS
+
+FLAC
+
+MP3
+
+Opus
+
+Subtitles
+
+SRT
+
+ASS
+
+SSA
+
+VTT
+
+PGS
+
+SUP
+
+=========================================================
+DETECTION RULES
+=========================================================
+
+Automatically detect
+
+Main Movie
+
+Episodes
+
+Subtitles
+
+Artwork
+
+Trailers
+
+Extras
+
+Ignore
+
+sample.mkv
+
+sample.mp4
+
+readme.txt
+
+.nfo
+
+.url
+
+small clips
+
+=========================================================
+MAIN MOVIE DETECTION
+=========================================================
+
+Determine the primary playable file using a weighted scoring algorithm.
+
+Consider:
+
+Largest file size
+
+Longest duration
+
+Highest bitrate
+
+Playable extension
+
+Folder structure
+
+Ignore samples
+
+Ignore bonus content
+
+Return confidence score.
+
+=========================================================
+MEDIA INFORMATION
+=========================================================
+
+Extract
+
+Title
+
+Duration
+
+Resolution
+
+Frame Rate
+
+Video Codec
+
+Audio Codec
+
+Bitrate
+
+Language
+
+Subtitle Tracks
+
+File Size
+
+=========================================================
+MEDIA MODEL
+=========================================================
+
+Create strongly typed models.
+
+MediaFile
+
+SubtitleTrack
+
+AudioTrack
+
+Artwork
+
+TorrentMedia
+
+MediaCollection
+
+=========================================================
+FFPROBE
+=========================================================
+
+Use FFprobe ONLY for metadata extraction.
+
+Do NOT transcode.
+
+Do NOT decode video.
+
+Only inspect media.
+
+=========================================================
+PUBLIC RUST API
+=========================================================
+
+Implement:
+
+get_media()
+
+get_main_video()
+
+get_subtitles()
+
+get_audio_tracks()
+
+get_artwork()
+
+scan_torrent()
+
+analyze_media()
+
+=========================================================
+EVENTS
+=========================================================
+
+Create events:
+
+MetadataReady
+
+MediaDetected
+
+SubtitleDetected
+
+ArtworkDetected
+
+AnalysisCompleted
+
+=========================================================
+ERROR HANDLING
+=========================================================
+
+Handle:
+
+Corrupt metadata
+
+Unsupported formats
+
+Missing metadata
+
+Multiple movies
+
+Duplicate files
+
+Empty torrents
+
+=========================================================
+FLUTTER BRIDGE
+=========================================================
+
+Expose:
+
+scanTorrent()
+
+getMedia()
+
+getPrimaryVideo()
+
+getSubtitles()
+
+getArtwork()
+
+Flutter must receive strongly typed models.
+
+=========================================================
+TESTING
+=========================================================
+
+Test:
+
+Movie torrents
+
+TV show torrents
+
+Anime torrents
+
+Large collections
+
+Corrupt torrents
+
+Mixed media torrents
+
+Nested folders
+
+Duplicate movies
+
+=========================================================
+PERFORMANCE
+=========================================================
+
+Requirements:
+
+Analyze large torrents quickly.
+
+Avoid loading unnecessary files.
+
+Cache metadata.
+
+Avoid repeated FFprobe calls.
+
+=========================================================
+DELIVERABLES
+=========================================================
+
+Provide:
+
+Folder structure
+
+Rust modules
+
+Models
+
+Business logic
+
+Unit tests
+
+Integration tests
+
+Documentation
+
+Build instructions
+
+=========================================================
+RULES
+=========================================================
+
+Production-quality Rust.
+
+No placeholder code.
+
+No TODOs.
+
+No fake implementations.
+
+No playback.
+
+No streaming.
+
+No buffering.
+
+No UI logic.
+
+Only implement metadata analysis.
+
+Stop after Phase 3 is complete.

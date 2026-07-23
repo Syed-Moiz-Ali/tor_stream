@@ -1,0 +1,326 @@
+# PHASE 9 — Media Enhancement Engine
+
+You are a Principal Media Playback Engineer from Netflix, VLC, Plex, MX Player and Google Android Media3.
+
+Expertise:
+
+- Rust
+- FFmpeg
+- Android Media3
+- Subtitle Systems
+- Audio Systems
+- Media Containers
+- Playback Architecture
+
+Continue from Phase 8.
+
+Implement ONLY Phase 9.
+
+Do NOT rewrite previous phases.
+
+=========================================================
+PROJECT GOAL
+=========================================================
+
+Build a professional Media Enhancement Engine.
+
+This phase improves playback quality and user experience.
+
+The streaming engine already exists.
+
+The download engine already exists.
+
+This phase enhances media playback.
+
+=========================================================
+OBJECTIVES
+=========================================================
+
+Implement:
+
+• Subtitle Engine
+• Audio Track Engine
+• Thumbnail Engine
+• Chapter Engine
+• Playback Enhancement Engine
+• Media Information Engine
+
+=========================================================
+MODULES
+=========================================================
+
+subtitle_engine/
+
+audio_engine/
+
+thumbnail_engine/
+
+chapter_engine/
+
+playback_engine/
+
+media_info/
+
+events/
+
+bridge/
+
+=========================================================
+SUBTITLE ENGINE
+=========================================================
+
+Support:
+
+Embedded subtitles
+
+External subtitles
+
+Automatic subtitle detection
+
+Subtitle delay
+
+Subtitle offset
+
+Subtitle scaling
+
+Subtitle font size
+
+Subtitle color
+
+Subtitle background
+
+Subtitle outline
+
+Subtitle shadow
+
+Subtitle encoding detection
+
+=========================================================
+SUPPORTED SUBTITLES
+=========================================================
+
+SRT
+
+ASS
+
+SSA
+
+VTT
+
+SUB
+
+IDX
+
+PGS
+
+SUP
+
+=========================================================
+AUDIO ENGINE
+=========================================================
+
+Support:
+
+Multiple audio tracks
+
+Audio language switching
+
+Audio delay
+
+Stereo
+
+5.1
+
+7.1
+
+Dolby
+
+DTS
+
+AAC
+
+FLAC
+
+=========================================================
+THUMBNAIL ENGINE
+=========================================================
+
+Generate:
+
+Movie thumbnail
+
+Preview thumbnails
+
+Timeline thumbnails
+
+Episode thumbnails
+
+Store thumbnails locally.
+
+=========================================================
+CHAPTER ENGINE
+=========================================================
+
+Support:
+
+MKV Chapters
+
+MP4 Chapters
+
+Named Chapters
+
+Jump to Chapter
+
+Chapter List
+
+=========================================================
+PLAYBACK ENHANCEMENTS
+=========================================================
+
+Support:
+
+Playback Speed
+
+Loop
+
+Repeat
+
+Skip Forward
+
+Skip Backward
+
+Remember Playback Speed
+
+Remember Audio Track
+
+Remember Subtitle Track
+
+=========================================================
+MEDIA INFORMATION
+=========================================================
+
+Display:
+
+Resolution
+
+Codec
+
+Bitrate
+
+Frame Rate
+
+HDR
+
+Color Space
+
+Aspect Ratio
+
+Container
+
+Duration
+
+=========================================================
+PUBLIC API
+=========================================================
+
+Implement:
+
+loadSubtitles()
+
+changeSubtitle()
+
+changeAudioTrack()
+
+generateThumbnails()
+
+getChapters()
+
+setPlaybackSpeed()
+
+=========================================================
+FLUTTER MODELS
+=========================================================
+
+Expose:
+
+SubtitleTrack
+
+AudioTrack
+
+Chapter
+
+Thumbnail
+
+MediaInformation
+
+=========================================================
+TESTING
+=========================================================
+
+Test:
+
+MKV
+
+MP4
+
+AVI
+
+Anime
+
+Multiple subtitle tracks
+
+Multiple audio tracks
+
+HDR movies
+
+4K movies
+
+=========================================================
+PERFORMANCE
+=========================================================
+
+Thumbnail generation
+
+Background processing
+
+Subtitle switching
+
+Instant
+
+Audio switching
+
+Instant
+
+=========================================================
+DOCUMENTATION
+=========================================================
+
+Provide:
+
+Playback Flow
+
+Subtitle Architecture
+
+Audio Architecture
+
+Thumbnail Architecture
+
+=========================================================
+RULES
+=========================================================
+
+Production-quality Rust.
+
+No placeholder implementations.
+
+No TODO comments.
+
+Everything must compile.
+
+Do NOT implement AI subtitles.
+
+Do NOT implement Watch Party.
+
+Do NOT implement LAN streaming.
+
+Stop after Phase 9.

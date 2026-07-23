@@ -1,0 +1,430 @@
+# PHASE 4 — Adaptive Streaming Engine
+
+You are a Principal Streaming Systems Engineer from Netflix, Plex, Stremio and qBittorrent.
+
+Expertise:
+
+- Rust
+- BitTorrent Protocol
+- libtorrent-rasterbar
+- Streaming Systems
+- ExoPlayer
+- Android
+- Async Programming
+- Memory Management
+- Performance Engineering
+
+Continue from Phase 3.
+
+Do NOT rewrite previous phases.
+
+Implement ONLY Phase 4.
+
+=========================================================
+PROJECT GOAL
+=========================================================
+
+Build a production-grade Adaptive Torrent Streaming Engine.
+
+This engine is the heart of the application.
+
+The goal is to allow a user to start watching a movie before it has finished downloading.
+
+The engine must stream directly from partially downloaded torrent pieces.
+
+This engine must be designed for Android devices with limited RAM and storage while maintaining excellent playback performance.
+
+=========================================================
+OBJECTIVES
+=========================================================
+
+Implement:
+
+• Adaptive Streaming Buffer
+• Piece Scheduler
+• Read Ahead Buffer
+• Seek-aware Piece Prioritization
+• Memory Cache
+• Disk Cache
+• Playback State Machine
+• Download Scheduler
+
+No UI.
+
+No player controls.
+
+No watch party.
+
+=========================================================
+ENGINE ARCHITECTURE
+=========================================================
+
+Create the following modules:
+
+streaming_engine/
+
+    buffer/
+
+    scheduler/
+
+    prioritizer/
+
+    cache/
+
+    reader/
+
+    pipeline/
+
+    playback/
+
+    monitor/
+
+    statistics/
+
+    events/
+
+    bridge/
+
+=========================================================
+STREAMING PIPELINE
+=========================================================
+
+Torrent Swarm
+
+↓
+
+Piece Scheduler
+
+↓
+
+Download Queue
+
+↓
+
+Memory Cache
+
+↓
+
+Disk Cache
+
+↓
+
+Adaptive Buffer
+
+↓
+
+Streaming Reader
+
+↓
+
+Player Interface
+
+=========================================================
+BUFFER MANAGER
+=========================================================
+
+Implement:
+
+Startup Buffer
+
+Read Ahead Buffer
+
+Playback Buffer
+
+Emergency Buffer
+
+Adaptive Buffer Size
+
+Low Buffer Detection
+
+Buffer Recovery
+
+Maintain configurable buffering targets.
+
+=========================================================
+PIECE SCHEDULER
+=========================================================
+
+The scheduler must dynamically assign priorities.
+
+Priority order:
+
+1. Current playback position
+2. Read-ahead window
+3. Near-future pieces
+4. Remaining sequential pieces
+5. Rare pieces when safe
+
+Recalculate priorities whenever playback position changes.
+
+=========================================================
+SEEK SUPPORT
+=========================================================
+
+When the user seeks:
+
+Cancel unnecessary requests.
+
+Recalculate target pieces.
+
+Immediately prioritize the destination region.
+
+Resume buffering around the new playback position.
+
+Seek operations should minimize waiting time.
+
+=========================================================
+MEMORY CACHE
+=========================================================
+
+Implement:
+
+LRU cache
+
+Pinned pieces
+
+Automatic eviction
+
+Memory pressure handling
+
+Configurable cache size
+
+=========================================================
+DISK CACHE
+=========================================================
+
+Implement:
+
+Sequential writes
+
+Fast reads
+
+Piece validation
+
+Persistent cache
+
+Cache cleanup
+
+=========================================================
+STREAMING READER
+=========================================================
+
+Create a reader capable of serving continuous byte streams from partially downloaded files.
+
+The reader must:
+
+Read available data
+
+Block intelligently when necessary
+
+Resume automatically when new pieces arrive
+
+Never expose incomplete or corrupted data
+
+=========================================================
+PLAYBACK STATE MACHINE
+=========================================================
+
+States:
+
+Idle
+
+Preparing
+
+Buffering
+
+Ready
+
+Playing
+
+Paused
+
+Seeking
+
+Recovering
+
+Completed
+
+Error
+
+Transitions must be deterministic and thread-safe.
+
+=========================================================
+EVENT SYSTEM
+=========================================================
+
+Generate strongly typed events:
+
+BufferStarted
+
+BufferUpdated
+
+BufferRecovered
+
+SeekStarted
+
+SeekCompleted
+
+CacheHit
+
+CacheMiss
+
+PiecePrioritized
+
+PlaybackReady
+
+PlaybackStalled
+
+=========================================================
+PERFORMANCE TARGETS
+=========================================================
+
+Target startup:
+
+3–10 seconds on healthy torrents.
+
+Maintain smooth playback when download speed exceeds video bitrate.
+
+Optimize:
+
+CPU
+
+RAM
+
+Disk I/O
+
+Battery usage
+
+Avoid unnecessary allocations and lock contention.
+
+=========================================================
+PUBLIC RUST API
+=========================================================
+
+Implement:
+
+prepare_stream()
+
+start_stream()
+
+pause_stream()
+
+resume_stream()
+
+seek_stream()
+
+stop_stream()
+
+get_buffer_status()
+
+get_cache_status()
+
+get_stream_statistics()
+
+=========================================================
+FLUTTER BRIDGE
+=========================================================
+
+Expose all public APIs through flutter_rust_bridge.
+
+Flutter must receive strongly typed models.
+
+Flutter must never contain streaming logic.
+
+=========================================================
+TESTING
+=========================================================
+
+Write tests for:
+
+Startup buffering
+
+Adaptive buffer growth
+
+Read-ahead logic
+
+Seek behavior
+
+Piece prioritization
+
+Cache eviction
+
+Buffer recovery
+
+Low bandwidth simulation
+
+High bandwidth simulation
+
+Large video files
+
+Small video files
+
+=========================================================
+BENCHMARKS
+=========================================================
+
+Benchmark:
+
+Startup latency
+
+Seek latency
+
+Buffer recovery
+
+Memory usage
+
+CPU usage
+
+Disk throughput
+
+Document the results.
+
+=========================================================
+DOCUMENTATION
+=========================================================
+
+Provide:
+
+Architecture diagrams
+
+Sequence diagrams
+
+State diagrams
+
+Module documentation
+
+Performance explanation
+
+Optimization rationale
+
+=========================================================
+RULES
+=========================================================
+
+Write production-quality Rust.
+
+No placeholder code.
+
+No TODO comments.
+
+No mock implementations.
+
+Follow SOLID.
+
+Follow Clean Architecture.
+
+Prefer lock-free or low-contention designs where appropriate.
+
+Document every public API.
+
+Every module must compile.
+
+Do NOT implement the media player.
+
+Do NOT implement HTTP serving.
+
+Do NOT implement LAN streaming.
+
+Do NOT implement watch party.
+
+Stop after Phase 4 is complete.

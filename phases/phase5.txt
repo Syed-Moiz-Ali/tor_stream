@@ -1,0 +1,393 @@
+# PHASE 5 — Android Media Delivery Layer
+
+You are a Principal Android Media Engineer from Google Android Media3, Netflix, Plex and VLC.
+
+Expertise:
+
+- Android Media3
+- ExoPlayer
+- Rust
+- JNI
+- flutter_rust_bridge
+- Android NDK
+- Streaming Systems
+- Performance Optimization
+
+Continue from Phase 4.
+
+Do NOT rewrite previous phases.
+
+Implement ONLY Phase 5.
+
+=========================================================
+PROJECT GOAL
+=========================================================
+
+Integrate the Rust Adaptive Streaming Engine with Android Media3 (ExoPlayer).
+
+The Android player must read data directly from the Rust engine.
+
+Avoid unnecessary copies.
+
+Avoid local networking.
+
+Avoid HTTP unless absolutely required.
+
+This phase creates the bridge between the streaming engine and Android playback.
+
+=========================================================
+OBJECTIVES
+=========================================================
+
+Implement:
+
+• Custom Media3 DataSource
+• Rust Reader Bridge
+• JNI Layer
+• Flutter Player Integration
+• Playback Events
+• Stream Lifecycle
+
+No LAN.
+
+No Watch Party.
+
+No AI.
+
+=========================================================
+ARCHITECTURE
+=========================================================
+
+Flutter UI
+
+↓
+
+Platform Channel
+
+↓
+
+Android Kotlin
+
+↓
+
+Media3 Player
+
+↓
+
+Custom DataSource
+
+↓
+
+JNI
+
+↓
+
+Rust Streaming Engine
+
+↓
+
+Torrent Pieces
+
+=========================================================
+ANDROID COMPONENTS
+=========================================================
+
+Implement:
+
+PlayerManager
+
+MediaSession
+
+MediaController
+
+MediaSourceFactory
+
+RustDataSource
+
+RustDataSourceFactory
+
+PlaybackListener
+
+NotificationManager
+
+=========================================================
+CUSTOM DATASOURCE
+=========================================================
+
+The DataSource must:
+
+Open()
+
+Read()
+
+Seek()
+
+Close()
+
+Return available bytes from Rust.
+
+Block intelligently while waiting for required pieces.
+
+Never return corrupted data.
+
+Support partial availability.
+
+=========================================================
+JNI LAYER
+=========================================================
+
+Implement native bindings.
+
+Expose:
+
+openStream()
+
+readBytes()
+
+seek()
+
+closeStream()
+
+bufferStatus()
+
+streamStatistics()
+
+Ensure thread safety.
+
+Avoid unnecessary allocations.
+
+=========================================================
+RUST PLAYER INTERFACE
+=========================================================
+
+Create:
+
+player_bridge/
+
+    datasource/
+
+    reader/
+
+    state/
+
+    statistics/
+
+Expose APIs for Android only.
+
+=========================================================
+PLAYBACK EVENTS
+=========================================================
+
+Generate events:
+
+Preparing
+
+Ready
+
+Buffering
+
+Playing
+
+Paused
+
+Completed
+
+Seeking
+
+Recovering
+
+Error
+
+Forward these events to Flutter.
+
+=========================================================
+MEDIA SESSION
+=========================================================
+
+Support:
+
+Play
+
+Pause
+
+Seek
+
+Stop
+
+Previous
+
+Next
+
+Lock Screen Controls
+
+Bluetooth Controls
+
+Android Auto compatibility (future-ready)
+
+=========================================================
+NOTIFICATION
+=========================================================
+
+Implement a foreground media notification.
+
+Show:
+
+Movie Title
+
+Progress
+
+Play
+
+Pause
+
+Seek
+
+Stop
+
+=========================================================
+PLAYER FEATURES
+=========================================================
+
+Support:
+
+Pause
+
+Resume
+
+Seek
+
+Playback Speed
+
+Audio Track Selection
+
+Subtitle Track Selection
+
+Loop
+
+Repeat
+
+=========================================================
+ERROR HANDLING
+=========================================================
+
+Handle:
+
+Missing pieces
+
+Buffer underrun
+
+JNI failures
+
+Rust failures
+
+Unexpected EOF
+
+Graceful recovery where possible.
+
+=========================================================
+PERFORMANCE TARGETS
+=========================================================
+
+Startup:
+
+3–10 seconds
+
+Seek:
+
+<3 seconds on healthy torrents
+
+CPU:
+
+Minimal overhead
+
+Memory:
+
+Avoid duplicate buffers
+
+Battery:
+
+Optimized
+
+=========================================================
+PUBLIC FLUTTER API
+=========================================================
+
+Expose:
+
+play()
+
+pause()
+
+seek()
+
+stop()
+
+getPlaybackState()
+
+getBufferHealth()
+
+getStatistics()
+
+=========================================================
+TESTING
+=========================================================
+
+Test:
+
+Large MKV
+
+Large MP4
+
+Small MP4
+
+Slow network
+
+Fast network
+
+Seek stress tests
+
+Repeated pause/resume
+
+Orientation changes
+
+Background playback
+
+=========================================================
+DOCUMENTATION
+=========================================================
+
+Provide:
+
+Architecture
+
+JNI flow
+
+Playback lifecycle
+
+Media3 integration
+
+Threading model
+
+Performance explanation
+
+=========================================================
+RULES
+=========================================================
+
+Production-quality code.
+
+No placeholder implementations.
+
+No TODO comments.
+
+No fake code.
+
+Use modern Media3 APIs.
+
+Minimize JNI overhead.
+
+Avoid unnecessary memory copies.
+
+Flutter must contain NO playback logic beyond UI.
+
+Stop after Phase 5.

@@ -1,0 +1,359 @@
+# PHASE 7 — Reliability, Persistence & Recovery Engine
+
+You are a Principal Systems Reliability Engineer from Netflix, Google Android, qBittorrent and Plex.
+
+Expertise:
+
+- Rust
+- Android
+- SQLite
+- libtorrent-rasterbar
+- Distributed Systems
+- Process Recovery
+- Mobile Reliability
+- Fault Tolerance
+
+Continue from Phase 6.
+
+Implement ONLY Phase 7.
+
+Do NOT rewrite previous phases.
+
+=========================================================
+PROJECT GOAL
+=========================================================
+
+Build a production-grade Reliability & Persistence Engine.
+
+The application must survive:
+
+• App crashes
+• Android process death
+• Device reboot
+• Network changes
+• Sleep mode
+• Battery optimization
+• Temporary storage failures
+
+without losing the user's progress.
+
+=========================================================
+OBJECTIVES
+=========================================================
+
+Implement:
+
+• Persistent Session Manager
+• Resume Engine
+• Recovery Manager
+• Storage Validator
+• Torrent Verification
+• Auto-Reconnect
+• Crash Recovery
+• Background Recovery
+
+=========================================================
+MODULES
+=========================================================
+
+recovery/
+
+resume/
+
+persistence/
+
+verification/
+
+migration/
+
+network/
+
+backup/
+
+health/
+
+events/
+
+bridge/
+
+=========================================================
+SESSION PERSISTENCE
+=========================================================
+
+Persist:
+
+Torrent Hash
+
+Magnet URI
+
+Torrent File
+
+Download Progress
+
+Downloaded Pieces
+
+Piece Priorities
+
+Playback Position
+
+Selected Audio
+
+Subtitle
+
+Playback Speed
+
+Buffer State
+
+Current File
+
+Cache Metadata
+
+Last Active Time
+
+=========================================================
+APP RESTART
+=========================================================
+
+On launch:
+
+Load SQLite
+
+Restore torrents
+
+Restore session
+
+Restore playback
+
+Restore buffering
+
+Reconnect peers
+
+Resume streaming automatically.
+
+=========================================================
+DEVICE REBOOT
+=========================================================
+
+Support:
+
+BOOT_COMPLETED
+
+Restore background service.
+
+Restore all active torrents.
+
+=========================================================
+NETWORK RECOVERY
+=========================================================
+
+Handle:
+
+Wi-Fi → Mobile
+
+Mobile → Wi-Fi
+
+Offline
+
+Online
+
+Weak Network
+
+IP Changes
+
+Automatically reconnect peers.
+
+Resume downloads.
+
+=========================================================
+DATA VERIFICATION
+=========================================================
+
+Verify:
+
+Resume Data
+
+Cache Files
+
+Piece Integrity
+
+Torrent Integrity
+
+Database Integrity
+
+Automatically repair where possible.
+
+=========================================================
+BACKGROUND SERVICE
+=========================================================
+
+Maintain playback.
+
+Maintain downloads.
+
+Handle Android process recreation.
+
+Handle service restart.
+
+=========================================================
+CRASH RECOVERY
+=========================================================
+
+Detect unexpected shutdown.
+
+Restore safely.
+
+Avoid corruption.
+
+Recover unfinished operations.
+
+=========================================================
+HEALTH MONITOR
+=========================================================
+
+Monitor:
+
+Storage
+
+Memory
+
+CPU
+
+Database
+
+Network
+
+Torrent Session
+
+Detect unhealthy conditions.
+
+=========================================================
+AUTO BACKUP
+=========================================================
+
+Persist:
+
+SQLite
+
+Resume Data
+
+Settings
+
+Cache Index
+
+Configuration
+
+=========================================================
+PUBLIC API
+=========================================================
+
+Implement:
+
+restoreSession()
+
+saveSession()
+
+verifyStorage()
+
+repairCache()
+
+healthStatus()
+
+backupNow()
+
+=========================================================
+FLUTTER EVENTS
+=========================================================
+
+Expose:
+
+RecoveryStarted
+
+RecoveryFinished
+
+VerificationStarted
+
+VerificationFinished
+
+StorageWarning
+
+SessionRestored
+
+=========================================================
+TESTING
+=========================================================
+
+Simulate:
+
+Force Close
+
+Crash
+
+Device Reboot
+
+Network Loss
+
+Database Corruption
+
+Cache Corruption
+
+Low Storage
+
+Low Memory
+
+Rapid Restart
+
+=========================================================
+PERFORMANCE TARGETS
+=========================================================
+
+Session Restore
+
+< 3 seconds
+
+Database Startup
+
+< 500 ms
+
+Recovery
+
+< 5 seconds
+
+=========================================================
+DOCUMENTATION
+=========================================================
+
+Provide:
+
+Recovery Flow
+
+Crash Flow
+
+Restore Lifecycle
+
+State Diagrams
+
+Architecture Updates
+
+=========================================================
+RULES
+=========================================================
+
+Production-quality Rust.
+
+No placeholder code.
+
+No TODO comments.
+
+Everything must be fault tolerant.
+
+Never lose user progress.
+
+Document every public API.
+
+Do NOT implement LAN streaming.
+
+Do NOT implement Watch Party.
+
+Do NOT implement AI.
+
+Stop after Phase 7.
