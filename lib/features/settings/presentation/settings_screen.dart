@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../app/theme.dart';
 import '../providers/settings_provider.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -9,61 +10,69 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final healthAsync = ref.watch(healthStatusProvider);
     final storageAsync = ref.watch(storageReportProvider);
-    final cs = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         children: [
-          _sectionHeader('Engine Status', cs),
+          _sectionHeader('Engine Status'),
           healthAsync.when(
-            loading: () => const _InfoTile(title: 'Loading...', value: ''),
-            error: (e, _) => _InfoTile(title: 'Health Check', value: 'Failed: $e', icon: Icons.error, iconColor: cs.error),
+            loading: () => const Padding(
+              padding: EdgeInsets.all(24),
+              child: Center(child: SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2.5))),
+            ),
+            error: (e, _) => _InfoTile(
+              title: 'Health Check', value: 'Failed',
+              icon: Icons.error, iconColor: TorStreamTheme.accentRed,
+            ),
             data: (health) => Column(
               children: [
                 _InfoTile(title: 'Status', value: health?.isHealthy == true ? 'Healthy' : 'Warning',
-                  icon: health?.isHealthy == true ? Icons.check_circle : Icons.warning,
-                  iconColor: health?.isHealthy == true ? const Color(0xFF2ECC71) : const Color(0xFFFFB347)),
+                  icon: Icons.monitor_heart_rounded,
+                  iconColor: health?.isHealthy == true ? TorStreamTheme.accentGreen : TorStreamTheme.accentAmber),
                 _InfoTile(title: 'Storage', value: _formatBytes(health?.availableStorageBytes ?? 0),
                   icon: Icons.storage_rounded),
-                _InfoTile(title: 'RAM Available', value: '${health?.availableRamMb ?? 0} MB',
+                _InfoTile(title: 'Memory', value: '${health?.availableRamMb ?? 0} MB',
                   icon: Icons.memory_rounded),
                 _InfoTile(title: 'Network', value: health?.isNetworkConnected == true ? 'Connected' : 'Disconnected',
-                  icon: Icons.wifi_rounded),
+                  icon: Icons.wifi_rounded,
+                  iconColor: health?.isNetworkConnected == true ? TorStreamTheme.accentGreen : TorStreamTheme.accentRed),
                 _InfoTile(title: 'Database', value: health?.isDatabaseOk == true ? 'OK' : 'Corrupted',
-                  icon: Icons.dns_rounded),
+                  icon: Icons.dns_rounded,
+                  iconColor: health?.isDatabaseOk == true ? TorStreamTheme.accentGreen : TorStreamTheme.accentRed),
                 _InfoTile(title: 'Active Torrents', value: '${health?.activeTorrentsCount ?? 0}',
                   icon: Icons.download_rounded),
               ],
             ),
           ),
-          const SizedBox(height: 24),
-          _sectionHeader('Storage', cs),
+          const SizedBox(height: 20),
+          _sectionHeader('Storage'),
           storageAsync.when(
             loading: () => const _InfoTile(title: 'Checking...', value: ''),
-            error: (e, _) => _InfoTile(title: 'Storage Check', value: 'Failed: $e', icon: Icons.error, iconColor: cs.error),
+            error: (e, _) => _InfoTile(title: 'Storage Check', value: 'Error', icon: Icons.error, iconColor: TorStreamTheme.accentRed),
             data: (report) => _InfoTile(title: 'Total Space', value: _formatBytes(report?.totalSpaceBytes ?? 0),
               icon: Icons.folder_rounded),
           ),
-          const SizedBox(height: 32),
-          _sectionHeader('About', cs),
+          const SizedBox(height: 20),
+          _sectionHeader('About'),
           _InfoTile(title: 'Version', value: '1.0.0', icon: Icons.info_outline_rounded),
           _InfoTile(title: 'Engine', value: 'Rust + librqbit', icon: Icons.settings_rounded),
+          const SizedBox(height: 32),
         ],
       ),
     );
   }
 
-  Widget _sectionHeader(String title, ColorScheme cs) {
+  Widget _sectionHeader(String title) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: 8, top: 8),
       child: Text(title,
         style: TextStyle(
-          fontSize: 13,
+          fontSize: 12,
           fontWeight: FontWeight.w700,
-          letterSpacing: 1,
-          color: cs.onSurface.withValues(alpha: 0.5),
+          letterSpacing: 0.8,
+          color: TorStreamTheme.textSecondary.withValues(alpha: 0.8),
         )),
     );
   }
@@ -82,24 +91,38 @@ class _InfoTile extends StatelessWidget {
   final IconData? icon;
   final Color? iconColor;
 
-  const _InfoTile({
-    required this.title,
-    required this.value,
-    this.icon,
-    this.iconColor,
-  });
+  const _InfoTile({required this.title, required this.value, this.icon, this.iconColor});
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final color = iconColor ?? TorStreamTheme.seedColor;
+
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 3),
       child: Card(
-        child: ListTile(
-          leading: icon != null ? Icon(icon, color: iconColor ?? const Color(0xFF7C6EF8), size: 20) : null,
-          title: Text(title, style: const TextStyle(fontSize: 14)),
-          trailing: Text(value,
-            style: TextStyle(fontSize: 13, color: cs.onSurface.withValues(alpha: 0.6))),
+        margin: EdgeInsets.zero,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          child: Row(
+            children: [
+              if (icon != null) ...[
+                Container(
+                  width: 34, height: 34,
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(icon, color: color, size: 18),
+                ),
+                const SizedBox(width: 12),
+              ],
+              Expanded(
+                child: Text(title, style: TextStyle(fontSize: 14, color: cs.onSurface.withValues(alpha: 0.85))),
+              ),
+              Text(value, style: TextStyle(fontSize: 13, color: cs.onSurface.withValues(alpha: 0.5))),
+            ],
+          ),
         ),
       ),
     );

@@ -5,6 +5,7 @@ import '../../../bridge/generated/types.dart';
 import '../../../shared/models/torrent_state.dart';
 import '../../../shared/widgets/progress_bar.dart';
 import '../../../shared/widgets/speed_indicator.dart';
+import '../../../app/theme.dart';
 import '../providers/torrent_list_provider.dart';
 
 class TorrentTile extends ConsumerWidget {
@@ -17,55 +18,60 @@ class TorrentTile extends ConsumerWidget {
     final cs = Theme.of(context).colorScheme;
 
     return Card(
-      margin: const EdgeInsets.symmetric(vertical: 4),
+      margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 5),
       child: InkWell(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
         onTap: () => context.push('/player/${torrent.id}/${0}'),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(16, 14, 12, 14),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: TorStreamTheme.seedColor.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(
+                      torrent.isCompleted
+                          ? Icons.check_circle_rounded
+                          : Icons.movie_rounded,
+                      color: torrent.isCompleted
+                          ? TorStreamTheme.accentGreen
+                          : TorStreamTheme.seedColor,
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
                   Expanded(
-                    child: Text(torrent.name,
-                      style: Theme.of(context).textTheme.titleMedium,
-                      maxLines: 1, overflow: TextOverflow.ellipsis),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(torrent.name,
+                          style: Theme.of(context).textTheme.titleMedium,
+                          maxLines: 1, overflow: TextOverflow.ellipsis),
+                        const SizedBox(height: 3),
+                        Row(
+                          children: [
+                            _statusChip(torrent.statusLabel),
+                            const SizedBox(width: 8),
+                            Text(torrent.formattedSize,
+                              style: TextStyle(fontSize: 11, color: cs.onSurface.withValues(alpha: 0.4))),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                  _statusChip(torrent.statusLabel, cs),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Text(torrent.formattedDownloaded,
-                    style: TextStyle(fontSize: 12, color: cs.onSurface.withValues(alpha: 0.6))),
-                  Text(' / ${torrent.formattedSize}',
-                    style: TextStyle(fontSize: 12, color: cs.onSurface.withValues(alpha: 0.4))),
-                  const Spacer(),
-                  Text(torrent.formattedEta,
-                    style: TextStyle(fontSize: 12, color: cs.onSurface.withValues(alpha: 0.5))),
-                ],
-              ),
-              const SizedBox(height: 8),
-              ProgressBar(progress: torrent.progress),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  SpeedIndicator(
-                    downloadSpeed: torrent.downloadSpeed,
-                    uploadSpeed: torrent.uploadSpeed,
-                  ),
-                  const Spacer(),
-                  Icon(Icons.people_rounded, size: 14,
-                    color: cs.onSurface.withValues(alpha: 0.4)),
-                  const SizedBox(width: 4),
-                  Text('${torrent.numPeers}',
-                    style: TextStyle(fontSize: 12, color: cs.onSurface.withValues(alpha: 0.6))),
-                  const SizedBox(width: 16),
                   PopupMenuButton<String>(
                     onSelected: (action) => _handleAction(context, ref, action),
+                    padding: EdgeInsets.zero,
+                    icon: Icon(Icons.more_horiz_rounded, size: 20,
+                      color: cs.onSurface.withValues(alpha: 0.4)),
                     itemBuilder: (_) => [
                       if (torrent.isPaused)
                         const PopupMenuItem(value: 'resume', child: Text('Resume'))
@@ -73,8 +79,35 @@ class TorrentTile extends ConsumerWidget {
                         const PopupMenuItem(value: 'pause', child: Text('Pause')),
                       const PopupMenuItem(value: 'remove', child: Text('Remove')),
                     ],
-                    child: Icon(Icons.more_vert_rounded, size: 18,
-                      color: cs.onSurface.withValues(alpha: 0.5)),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              ProgressBar(progress: torrent.progress, height: 4),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  SpeedIndicator(
+                    downloadSpeed: torrent.downloadSpeed,
+                    uploadSpeed: torrent.uploadSpeed,
+                  ),
+                  const Spacer(),
+                  if (torrent.isDownloading && torrent.etaSeconds != null) ...[
+                    Icon(Icons.timer_outlined, size: 12,
+                      color: cs.onSurface.withValues(alpha: 0.35)),
+                    const SizedBox(width: 4),
+                    Text(torrent.formattedEta,
+                      style: TextStyle(fontSize: 11, color: cs.onSurface.withValues(alpha: 0.5))),
+                    const SizedBox(width: 12),
+                  ],
+                  Row(
+                    children: [
+                      Icon(Icons.people_rounded, size: 14,
+                        color: cs.onSurface.withValues(alpha: 0.35)),
+                      const SizedBox(width: 4),
+                      Text('${torrent.numPeers}',
+                        style: TextStyle(fontSize: 12, color: cs.onSurface.withValues(alpha: 0.5))),
+                    ],
                   ),
                 ],
               ),
@@ -85,36 +118,26 @@ class TorrentTile extends ConsumerWidget {
     );
   }
 
-  Widget _statusChip(String label, ColorScheme cs) {
+  Widget _statusChip(String label) {
     final color = torrent.isCompleted
-        ? const Color(0xFF2ECC71)
+        ? TorStreamTheme.accentGreen
         : switch (torrent.status) {
-            FrbTorrentStatus.downloading => const Color(0xFF7C6EF8),
-            FrbTorrentStatus.seeding => const Color(0xFF2ECC71),
-            FrbTorrentStatus.paused => const Color(0xFFFFB347),
-            FrbTorrentStatus.error => const Color(0xFFE74C3C),
+            FrbTorrentStatus.downloading => TorStreamTheme.seedColor,
+            FrbTorrentStatus.seeding => TorStreamTheme.accentGreen,
+            FrbTorrentStatus.paused => TorStreamTheme.accentAmber,
+            FrbTorrentStatus.error => TorStreamTheme.accentRed,
             FrbTorrentStatus.checking => const Color(0xFF9B59B6),
             FrbTorrentStatus.fetchingMetadata => const Color(0xFF3498DB),
-            FrbTorrentStatus.queued => const Color(0xFF6B6B80),
+            FrbTorrentStatus.queued => TorStreamTheme.textSecondary,
           };
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(5),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (torrent.isCompleted) ...[
-            const Icon(Icons.check_circle_rounded, size: 11, color: Color(0xFF2ECC71)),
-            const SizedBox(width: 4),
-          ],
-          Text(label,
-            style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: color)),
-        ],
-      ),
+      child: Text(label,
+        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: color)),
     );
   }
 
@@ -127,25 +150,25 @@ class TorrentTile extends ConsumerWidget {
       case 'remove':
         showDialog(
           context: context,
-          builder: (_) => AlertDialog(
+          builder: (ctx) => AlertDialog(
             title: const Text('Remove Torrent'),
             content: const Text('Delete downloaded files as well?'),
             actions: [
               TextButton(
-                onPressed: () => Navigator.pop(context),
+                onPressed: () => Navigator.pop(ctx),
                 child: const Text('Cancel'),
               ),
               TextButton(
                 onPressed: () {
                   ref.read(removeTorrentProvider((id: torrent.id, deleteFiles: false)));
-                  Navigator.pop(context);
+                  Navigator.pop(ctx);
                 },
                 child: const Text('Remove Only'),
               ),
               FilledButton(
                 onPressed: () {
                   ref.read(removeTorrentProvider((id: torrent.id, deleteFiles: true)));
-                  Navigator.pop(context);
+                  Navigator.pop(ctx);
                 },
                 child: const Text('Delete Files'),
               ),

@@ -1,71 +1,372 @@
+7
+W/ImageReader_JNI(24851): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
 
-3
-W/ImageReader_JNI(22909): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+════════ Exception caught by widgets library ═══════════════════════════════════
+The following StateError was thrown while finalizing the widget tree:
+Bad state: Cannot use "ref" after the widget was disposed.
+
+When the exception was thrown, this was the stack:
+#0      ConsumerStatefulElement._assertNotDisposed (package:flutter_riverpod/src/consumer.dart:550:7)
+#1      ConsumerStatefulElement.read (package:flutter_riverpod/src/consumer.dart:619:5)
+#2      _PlayerScreenState._savePosition (package:tor_stream/features/player/presentation/player_screen.dart:42:29)
+#3      _PlayerScreenState.dispose (package:tor_stream/features/player/presentation/player_screen.dart:116:5)
+#4      StatefulElement.unmount (package:flutter/src/widgets/framework.dart:5932:11)
+#5      ConsumerStatefulElement.unmount (package:flutter_riverpod/src/consumer.dart:575:11)
+#6      _InactiveElements._unmount (package:flutter/src/widgets/framework.dart:2076:13)
+#7      _InactiveElements._unmount.<anonymous closure> (package:flutter/src/widgets/framework.dart:2074:7)
+#8      ComponentElement.visitChildren (package:flutter/src/widgets/framework.dart:5773:14)
+#9      _InactiveElements._unmount (package:flutter/src/widgets/framework.dart:2072:13)
+#10     _InactiveElements._unmount.<anonymous closure> (package:flutter/src/widgets/framework.dart:2074:7)
+#11     SingleChildRenderObjectElement.visitChildren (package:flutter/src/widgets/framework.dart:7004:14)
+#12     _InactiveElements._unmount (package:flutter/src/widgets/framework.dart:2072:13)
+#13     _InactiveElements._unmount.<anonymous closure> (package:flutter/src/widgets/framework.dart:2074:7)
+#14     ComponentElement.visitChildren (package:flutter/src/widgets/framework.dart:5773:14)
+#15     _InactiveElements._unmount (package:flutter/src/widgets/framework.dart:2072:13)
+#16     _InactiveElements._unmount.<anonymous closure> (package:flutter/src/widgets/framework.dart:2074:7)
+#17     SingleChildRenderObjectElement.visitChildren (package:flutter/src/widgets/framework.dart:7004:14)
+#18     _InactiveElements._unmount (package:flutter/src/widgets/framework.dart:2072:13)
+#19     _InactiveElements._unmount.<anonymous closure> (package:flutter/src/widgets/framework.dart:2074:7)
+#20     SingleChildRenderObjectElement.visitChildren (package:flutter/src/widgets/framework.dart:7004:14)
+#21     _InactiveElements._unmount (package:flutter/src/widgets/framework.dart:2072:13)
+#22     _InactiveElements._unmount.<anonymous closure> (package:flutter/src/widgets/framework.dart:2074:7)
+#23     ComponentElement.visitChildren (package:flutter/src/widgets/framework.dart:5773:14)
+#24     _InactiveElements._unmount (package:flutter/src/widgets/framework.dart:2072:13)
+#25     _InactiveElements._unmount.<anonymous closure> (package:flutter/src/widgets/framework.dart:2074:7)
+#26     SingleChildRenderObjectElement.visitChildren (package:flutter/src/widgets/framework.dart:7004:14)
+#27     _InactiveElements._unmount (package:flutter/src/widgets/framework.dart:2072:13)
+#28     _InactiveElements._unmount.<anonymous closure> (package:flutter/src/widgets/framework.dart:2074:7)
+#29     ComponentElement.visitChildren (package:flutter/src/widgets/framework.dart:5773:14)
+#30     _InactiveElements._unmount (package:flutter/src/widgets/framework.dart:2072:13)
+#31     _InactiveElements._unmount.<anonymous closure> (package:flutter/src/widgets/framework.dart:2074:7)
+#32     SingleChildRenderObjectElement.visitChildren (package:flutter/src/widgets/framework.dart:7004:14)
+#33     _InactiveElements._unmount (package:flutter/src/widgets/framework.dart:2072:13)
+#34     _InactiveElements._unmount.<anonymous closure> (package:flutter/src/widgets/framework.dart:2074:7)
+#35     ComponentElement.visitChildren (package:flutter/src/widgets/framework.dart:5773:14)
+#36     _InactiveElements._unmount (package:flutter/src/widgets/framework.dart:2072:13)
+#37     _InactiveElements._unmount.<anonymous closure> (package:flutter/src/widgets/framework.dart:2074:7)
+#38     ComponentElement.visitChildren (package:flutter/src/widgets/framework.dart:5773:14)
+#39     _InactiveElements._unmount (package:flutter/src/widgets/framework.dart:2072:13)
+#40     _InactiveElements._unmount.<anonymous closure> (package:flutter/src/widgets/framework.dart:2074:7)
+#41     SingleChildRenderObjectElement.visitChildren (package:flutter/src/widgets/framework.dart:7004:14)
+#42     _InactiveElements._unmount (package:flutter/src/widgets/framework.dart:2072:13)
+#43     _InactiveElements._unmount.<anonymous closure> (package:flutter/src/widgets/framework.dart:2074:7)
+#44     ComponentElement.visitChildren (package:flutter/src/widgets/framework.dart:5773:14)
+#45     _InactiveElements._unmount (package:flutter/src/widgets/framework.dart:2072:13)
+#46     _InactiveElements._unmount.<anonymous closure> (package:flutter/src/widgets/framework.dart:2074:7)
+#47     SingleChildRenderObjectElement.visitChildren (package:flutter/src/widgets/framework.dart:7004:14)
+#48     _InactiveElements._unmount (package:flutter/src/widgets/framework.dart:2072:13)
+#49     _InactiveElements._unmount.<anonymous closure> (package:flutter/src/widgets/framework.dart:2074:7)
+#50     ComponentElement.visitChildren (package:flutter/src/widgets/framework.dart:5773:14)
+#51     _InactiveElements._unmount (package:flutter/src/widgets/framework.dart:2072:13)
+#52     _InactiveElements._unmount.<anonymous closure> (package:flutter/src/widgets/framework.dart:2074:7)
+#53     ComponentElement.visitChildren (package:flutter/src/widgets/framework.dart:5773:14)
+#54     _InactiveElements._unmount (package:flutter/src/widgets/framework.dart:2072:13)
+#55     _InactiveElements._unmount.<anonymous closure> (package:flutter/src/widgets/framework.dart:2074:7)
+#56     ComponentElement.visitChildren (package:flutter/src/widgets/framework.dart:5773:14)
+#57     _InactiveElements._unmount (package:flutter/src/widgets/framework.dart:2072:13)
+#58     _InactiveElements._unmount.<anonymous closure> (package:flutter/src/widgets/framework.dart:2074:7)
+#59     ComponentElement.visitChildren (package:flutter/src/widgets/framework.dart:5773:14)
+#60     _InactiveElements._unmount (package:flutter/src/widgets/framework.dart:2072:13)
+#61     _InactiveElements._unmount.<anonymous closure> (package:flutter/src/widgets/framework.dart:2074:7)
+#62     ComponentElement.visitChildren (package:flutter/src/widgets/framework.dart:5773:14)
+#63     _InactiveElements._unmount (package:flutter/src/widgets/framework.dart:2072:13)
+#64     _InactiveElements._unmount.<anonymous closure> (package:flutter/src/widgets/framework.dart:2074:7)
+#65     SingleChildRenderObjectElement.visitChildren (package:flutter/src/widgets/framework.dart:7004:14)
+#66     _InactiveElements._unmount (package:flutter/src/widgets/framework.dart:2072:13)
+#67     _InactiveElements._unmount.<anonymous closure> (package:flutter/src/widgets/framework.dart:2074:7)
+#68     ComponentElement.visitChildren (package:flutter/src/widgets/framework.dart:5773:14)
+#69     _InactiveElements._unmount (package:flutter/src/widgets/framework.dart:2072:13)
+#70     _InactiveElements._unmount.<anonymous closure> (package:flutter/src/widgets/framework.dart:2074:7)
+#71     SingleChildRenderObjectElement.visitChildren (package:flutter/src/widgets/framework.dart:7004:14)
+#72     _InactiveElements._unmount (package:flutter/src/widgets/framework.dart:2072:13)
+#73     _InactiveElements._unmount.<anonymous closure> (package:flutter/src/widgets/framework.dart:2074:7)
+#74     ComponentElement.visitChildren (package:flutter/src/widgets/framework.dart:5773:14)
+#75     _InactiveElements._unmount (package:flutter/src/widgets/framework.dart:2072:13)
+#76     _InactiveElements._unmount.<anonymous closure> (package:flutter/src/widgets/framework.dart:2074:7)
+#77     ComponentElement.visitChildren (package:flutter/src/widgets/framework.dart:5773:14)
+#78     _InactiveElements._unmount (package:flutter/src/widgets/framework.dart:2072:13)
+#79     _InactiveElements._unmount.<anonymous closure> (package:flutter/src/widgets/framework.dart:2074:7)
+#80     ComponentElement.visitChildren (package:flutter/src/widgets/framework.dart:5773:14)
+#81     _InactiveElements._unmount (package:flutter/src/widgets/framework.dart:2072:13)
+#82     _InactiveElements._unmount.<anonymous closure> (package:flutter/src/widgets/framework.dart:2074:7)
+#83     ComponentElement.visitChildren (package:flutter/src/widgets/framework.dart:5773:14)
+#84     _InactiveElements._unmount (package:flutter/src/widgets/framework.dart:2072:13)
+#85     _InactiveElements._unmount.<anonymous closure> (package:flutter/src/widgets/framework.dart:2074:7)
+#86     ComponentElement.visitChildren (package:flutter/src/widgets/framework.dart:5773:14)
+#87     _InactiveElements._unmount (package:flutter/src/widgets/framework.dart:2072:13)
+#88     _InactiveElements._unmount.<anonymous closure> (package:flutter/src/widgets/framework.dart:2074:7)
+#89     ComponentElement.visitChildren (package:flutter/src/widgets/framework.dart:5773:14)
+#90     _InactiveElements._unmount (package:flutter/src/widgets/framework.dart:2072:13)
+#91     _InactiveElements._unmount.<anonymous closure> (package:flutter/src/widgets/framework.dart:2074:7)
+#92     SingleChildRenderObjectElement.visitChildren (package:flutter/src/widgets/framework.dart:7004:14)
+#93     _InactiveElements._unmount (package:flutter/src/widgets/framework.dart:2072:13)
+#94     _InactiveElements._unmount.<anonymous closure> (package:flutter/src/widgets/framework.dart:2074:7)
+#95     ComponentElement.visitChildren (package:flutter/src/widgets/framework.dart:5773:14)
+#96     _InactiveElements._unmount (package:flutter/src/widgets/framework.dart:2072:13)
+#97     _InactiveElements._unmount.<anonymous closure> (package:flutter/src/widgets/framework.dart:2074:7)
+#98     ComponentElement.visitChildren (package:flutter/src/widgets/framework.dart:5773:14)
+#99     _InactiveElements._unmount (package:flutter/src/widgets/framework.dart:2072:13)
+#100    _InactiveElements._unmount.<anonymous closure> (package:flutter/src/widgets/framework.dart:2074:7)
+#101    ComponentElement.visitChildren (package:flutter/src/widgets/framework.dart:5773:14)
+#102    _InactiveElements._unmount (package:flutter/src/widgets/framework.dart:2072:13)
+#103    _InactiveElements._unmount.<anonymous closure> (package:flutter/src/widgets/framework.dart:2074:7)
+#104    ComponentElement.visitChildren (package:flutter/src/widgets/framework.dart:5773:14)
+#105    _InactiveElements._unmount (package:flutter/src/widgets/framework.dart:2072:13)
+#106    _InactiveElements._unmount.<anonymous closure> (package:flutter/src/widgets/framework.dart:2074:7)
+#107    ComponentElement.visitChildren (package:flutter/src/widgets/framework.dart:5773:14)
+#108    _InactiveElements._unmount (package:flutter/src/widgets/framework.dart:2072:13)
+#109    _InactiveElements._unmount.<anonymous closure> (package:flutter/src/widgets/framework.dart:2074:7)
+#110    SingleChildRenderObjectElement.visitChildren (package:flutter/src/widgets/framework.dart:7004:14)
+#111    _InactiveElements._unmount (package:flutter/src/widgets/framework.dart:2072:13)
+#112    _InactiveElements._unmount.<anonymous closure> (package:flutter/src/widgets/framework.dart:2074:7)
+#113    ComponentElement.visitChildren (package:flutter/src/widgets/framework.dart:5773:14)
+#114    _InactiveElements._unmount (package:flutter/src/widgets/framework.dart:2072:13)
+#115    _InactiveElements._unmount.<anonymous closure> (package:flutter/src/widgets/framework.dart:2074:7)
+#116    ComponentElement.visitChildren (package:flutter/src/widgets/framework.dart:5773:14)
+#117    _InactiveElements._unmount (package:flutter/src/widgets/framework.dart:2072:13)
+#118    _InactiveElements._unmount.<anonymous closure> (package:flutter/src/widgets/framework.dart:2074:7)
+#119    ComponentElement.visitChildren (package:flutter/src/widgets/framework.dart:5773:14)
+#120    _InactiveElements._unmount (package:flutter/src/widgets/framework.dart:2072:13)
+#121    _InactiveElements._unmount.<anonymous closure> (package:flutter/src/widgets/framework.dart:2074:7)
+#122    ComponentElement.visitChildren (package:flutter/src/widgets/framework.dart:5773:14)
+#123    _InactiveElements._unmount (package:flutter/src/widgets/framework.dart:2072:13)
+#124    ListIterable.forEach (dart:_internal/iterable.dart:49:13)
+#125    _InactiveElements._unmountAll (package:flutter/src/widgets/framework.dart:2085:25)
+#126    BuildOwner.lockState (package:flutter/src/widgets/framework.dart:2965:15)
+#127    BuildOwner.finalizeTree (package:flutter/src/widgets/framework.dart:3289:7)
+#128    WidgetsBinding.drawFrame (package:flutter/src/widgets/binding.dart:1266:19)
+#129    RendererBinding._handlePersistentFrameCallback (package:flutter/src/rendering/binding.dart:495:5)
+#130    SchedulerBinding._invokeFrameCallback (package:flutter/src/scheduler/binding.dart:1434:15)
+#131    SchedulerBinding.handleDrawFrame (package:flutter/src/scheduler/binding.dart:1347:9)
+#132    SchedulerBinding._handleDrawFrame (package:flutter/src/scheduler/binding.dart:1200:5)
+#133    _invoke (dart:ui/hooks.dart:330:13)
+#134    PlatformDispatcher._drawFrame (dart:ui/platform_dispatcher.dart:444:5)
+#135    _drawFrame (dart:ui/hooks.dart:302:31)
+════════════════════════════════════════════════════════════════════════════════
+E/flutter (24851): [ERROR:flutter/runtime/dart_vm_initializer.cc(40)] Unhandled Exception: 'package:flutter/src/widgets/framework.dart': Failed assertion: line 5246 pos 12: '_lifecycleState != _ElementLifecycle.defunct': is not true.
+E/flutter (24851): #0      _AssertionError._doThrowNew (dart:core-patch/errors_patch.dart:67:4)
+E/flutter (24851): #1      _AssertionError._throwNew (dart:core-patch/errors_patch.dart:49:5)
+E/flutter (24851): #2      Element.markNeedsBuild (package:flutter/src/widgets/framework.dart:5246:12)
+E/flutter (24851): #3      ConsumerStatefulElement.watch.<anonymous closure>.<anonymous closure> (package:flutter_riverpod/src/consumer.dart:566:20)
+E/flutter (24851): #4      ProviderBase.addListener.<anonymous closure> (package:riverpod/src/framework/provider_base.dart:98:41)
+E/flutter (24851): #5      _RootZone.runBinaryGuarded (dart:async/zone.dart:1790:10)
+E/flutter (24851): #6      ProviderElementBase._notifyListeners.<anonymous closure> (package:riverpod/src/framework/element.dart:542:28)
+E/flutter (24851): #7      ResultData.map (package:riverpod/src/result.dart:74:16)
+E/flutter (24851): #8      ProviderElementBase._notifyListeners (package:riverpod/src/framework/element.dart:536:14)
+E/flutter (24851): #9      ProviderElementBase.setState (package:riverpod/src/framework/element.dart:140:7)
+E/flutter (24851): #10     StateNotifier.state= (package:state_notifier/state_notifier.dart:227:31)
+E/flutter (24851): #11     PlayerNotifier._startPositionPolling.<anonymous closure> (package:tor_stream/features/player/providers/player_provider.dart:156:9)
+E/flutter (24851): <asynchronous suspension>
+E/flutter (24851):
+W/ImageReader_JNI(24851): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+
+════════ Exception caught by foundation library ════════════════════════════════
+'package:flutter/src/widgets/framework.dart': Failed assertion: line 5246 pos 12: '_lifecycleState != _ElementLifecycle.defunct': is not true.
+════════════════════════════════════════════════════════════════════════════════
+
+════════ Exception caught by foundation library ════════════════════════════════
+'package:flutter/src/widgets/framework.dart': Failed assertion: line 5246 pos 12: '_lifecycleState != _ElementLifecycle.defunct': is not true.
+════════════════════════════════════════════════════════════════════════════════
+4
+W/ImageReader_JNI(24851): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
 
 ════════ Exception caught by foundation library ════════════════════════════════
 'package:flutter/src/widgets/framework.dart': Failed assertion: line 5246 pos 12: '_lifecycleState != _ElementLifecycle.defunct': is not true.
 ════════════════════════════════════════════════════════════════════════════════
 2
-W/ImageReader_JNI(22909): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI(24851): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+
+════════ Exception caught by foundation library ════════════════════════════════
+'package:flutter/src/widgets/framework.dart': Failed assertion: line 5246 pos 12: '_lifecycleState != _ElementLifecycle.defunct': is not true.
+════════════════════════════════════════════════════════════════════════════════
+3
+W/ImageReader_JNI(24851): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+
+════════ Exception caught by foundation library ════════════════════════════════
+'package:flutter/src/widgets/framework.dart': Failed assertion: line 5246 pos 12: '_lifecycleState != _ElementLifecycle.defunct': is not true.
+════════════════════════════════════════════════════════════════════════════════
+4
+W/ImageReader_JNI(24851): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
 
 ════════ Exception caught by foundation library ════════════════════════════════
 'package:flutter/src/widgets/framework.dart': Failed assertion: line 5246 pos 12: '_lifecycleState != _ElementLifecycle.defunct': is not true.
 ════════════════════════════════════════════════════════════════════════════════
 2
-W/ImageReader_JNI(22909): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
-E/flutter (22909): [ERROR:flutter/runtime/dart_vm_initializer.cc(40)] Unhandled Exception: 'package:flutter/src/widgets/framework.dart': Failed assertion: line 5246 pos 12: '_lifecycleState != _ElementLifecycle.defunct': is not true.
-E/flutter (22909): #0      _AssertionError._doThrowNew (dart:core-patch/errors_patch.dart:67:4)
-E/flutter (22909): #1      _AssertionError._throwNew (dart:core-patch/errors_patch.dart:49:5)
-E/flutter (22909): #2      Element.markNeedsBuild (package:flutter/src/widgets/framework.dart:5246:12)
-E/flutter (22909): #3      ConsumerStatefulElement.watch.<anonymous closure>.<anonymous closure> (package:flutter_riverpod/src/consumer.dart:566:20)
-E/flutter (22909): #4      ProviderBase.addListener.<anonymous closure> (package:riverpod/src/framework/provider_base.dart:98:41)
-E/flutter (22909): #5      _RootZone.runBinaryGuarded (dart:async/zone.dart:1790:10)
-E/flutter (22909): #6      ProviderElementBase._notifyListeners.<anonymous closure> (package:riverpod/src/framework/element.dart:542:28)
-E/flutter (22909): #7      ResultData.map (package:riverpod/src/result.dart:74:16)
-E/flutter (22909): #8      ProviderElementBase._notifyListeners (package:riverpod/src/framework/element.dart:536:14)
-E/flutter (22909): #9      ProviderElementBase.setState (package:riverpod/src/framework/element.dart:140:7)
-E/flutter (22909): #10     StateNotifier.state= (package:state_notifier/state_notifier.dart:227:31)
-E/flutter (22909): #11     PlayerNotifier._startPositionPolling.<anonymous closure> (package:tor_stream/features/player/providers/player_provider.dart:127:9)
-E/flutter (22909): <asynchronous suspension>
-E/flutter (22909):
-E/flutter (22909): [ERROR:flutter/runtime/dart_vm_initializer.cc(40)] Unhandled Exception: 'package:flutter/src/widgets/framework.dart': Failed assertion: line 5246 pos 12: '_lifecycleState != _ElementLifecycle.defunct': is not true.
-E/flutter (22909): #0      _AssertionError._doThrowNew (dart:core-patch/errors_patch.dart:67:4)
-E/flutter (22909): #1      _AssertionError._throwNew (dart:core-patch/errors_patch.dart:49:5)
-E/flutter (22909): #2      Element.markNeedsBuild (package:flutter/src/widgets/framework.dart:5246:12)
-E/flutter (22909): #3      ConsumerStatefulElement.watch.<anonymous closure>.<anonymous closure> (package:flutter_riverpod/src/consumer.dart:566:20)
-E/flutter (22909): #4      ProviderBase.addListener.<anonymous closure> (package:riverpod/src/framework/provider_base.dart:98:41)
-E/flutter (22909): #5      _RootZone.runBinaryGuarded (dart:async/zone.dart:1790:10)
-E/flutter (22909): #6      ProviderElementBase._notifyListeners.<anonymous closure> (package:riverpod/src/framework/element.dart:542:28)
-E/flutter (22909): #7      ResultData.map (package:riverpod/src/result.dart:74:16)
-E/flutter (22909): #8      ProviderElementBase._notifyListeners (package:riverpod/src/framework/element.dart:536:14)
-E/flutter (22909): #9      ProviderElementBase.setState (package:riverpod/src/framework/element.dart:140:7)
-E/flutter (22909): #10     StateNotifier.state= (package:state_notifier/state_notifier.dart:227:31)
-E/flutter (22909): #11     PlayerNotifier._startPositionPolling.<anonymous closure> (package:tor_stream/features/player/providers/player_provider.dart:127:9)
-E/flutter (22909): <asynchronous suspension>
-E/flutter (22909):
+W/ImageReader_JNI(24851): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+
+════════ Exception caught by foundation library ════════════════════════════════
+'package:flutter/src/widgets/framework.dart': Failed assertion: line 5246 pos 12: '_lifecycleState != _ElementLifecycle.defunct': is not true.
+════════════════════════════════════════════════════════════════════════════════
+3
+W/ImageReader_JNI(24851): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+
+════════ Exception caught by foundation library ════════════════════════════════
+'package:flutter/src/widgets/framework.dart': Failed assertion: line 5246 pos 12: '_lifecycleState != _ElementLifecycle.defunct': is not true.
+════════════════════════════════════════════════════════════════════════════════
+4
+W/ImageReader_JNI(24851): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+
+════════ Exception caught by foundation library ════════════════════════════════
+'package:flutter/src/widgets/framework.dart': Failed assertion: line 5246 pos 12: '_lifecycleState != _ElementLifecycle.defunct': is not true.
+════════════════════════════════════════════════════════════════════════════════
 2
-W/ImageReader_JNI(22909): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI(24851): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+
+════════ Exception caught by foundation library ════════════════════════════════
+'package:flutter/src/widgets/framework.dart': Failed assertion: line 5246 pos 12: '_lifecycleState != _ElementLifecycle.defunct': is not true.
+════════════════════════════════════════════════════════════════════════════════
+4
+W/ImageReader_JNI(24851): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
 
 ════════ Exception caught by foundation library ════════════════════════════════
 'package:flutter/src/widgets/framework.dart': Failed assertion: line 5246 pos 12: '_lifecycleState != _ElementLifecycle.defunct': is not true.
 ════════════════════════════════════════════════════════════════════════════════
 3
-W/ImageReader_JNI(22909): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI(24851): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+
+════════ Exception caught by foundation library ════════════════════════════════
+'package:flutter/src/widgets/framework.dart': Failed assertion: line 5246 pos 12: '_lifecycleState != _ElementLifecycle.defunct': is not true.
+════════════════════════════════════════════════════════════════════════════════
+2
+W/ImageReader_JNI(24851): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+
+════════ Exception caught by foundation library ════════════════════════════════
+'package:flutter/src/widgets/framework.dart': Failed assertion: line 5246 pos 12: '_lifecycleState != _ElementLifecycle.defunct': is not true.
+════════════════════════════════════════════════════════════════════════════════
+4
+W/ImageReader_JNI(24851): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+
+════════ Exception caught by foundation library ════════════════════════════════
+'package:flutter/src/widgets/framework.dart': Failed assertion: line 5246 pos 12: '_lifecycleState != _ElementLifecycle.defunct': is not true.
+════════════════════════════════════════════════════════════════════════════════
+2
+W/ImageReader_JNI(24851): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+
+════════ Exception caught by foundation library ════════════════════════════════
+'package:flutter/src/widgets/framework.dart': Failed assertion: line 5246 pos 12: '_lifecycleState != _ElementLifecycle.defunct': is not true.
+════════════════════════════════════════════════════════════════════════════════
+2
+W/ImageReader_JNI(24851): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+D/BufferPoolAccessor2.0(24851): bufferpool2 0xb40000725f987618 : 5(40960 size) total buffers - 1(8192 size) used buffers - 526/531 (recycle/alloc) - 5/523 (fetch/transfer)
+W/ImageReader_JNI(24851): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+
+════════ Exception caught by foundation library ════════════════════════════════
+'package:flutter/src/widgets/framework.dart': Failed assertion: line 5246 pos 12: '_lifecycleState != _ElementLifecycle.defunct': is not true.
+════════════════════════════════════════════════════════════════════════════════
+4
+W/ImageReader_JNI(24851): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+
+════════ Exception caught by foundation library ════════════════════════════════
+'package:flutter/src/widgets/framework.dart': Failed assertion: line 5246 pos 12: '_lifecycleState != _ElementLifecycle.defunct': is not true.
+════════════════════════════════════════════════════════════════════════════════
+2
+W/ImageReader_JNI(24851): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
 
 ════════ Exception caught by foundation library ════════════════════════════════
 'package:flutter/src/widgets/framework.dart': Failed assertion: line 5246 pos 12: '_lifecycleState != _ElementLifecycle.defunct': is not true.
 ════════════════════════════════════════════════════════════════════════════════
 3
-W/ImageReader_JNI(22909): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI(24851): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+
+════════ Exception caught by foundation library ════════════════════════════════
+'package:flutter/src/widgets/framework.dart': Failed assertion: line 5246 pos 12: '_lifecycleState != _ElementLifecycle.defunct': is not true.
+════════════════════════════════════════════════════════════════════════════════
+4
+W/ImageReader_JNI(24851): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+
+════════ Exception caught by foundation library ════════════════════════════════
+'package:flutter/src/widgets/framework.dart': Failed assertion: line 5246 pos 12: '_lifecycleState != _ElementLifecycle.defunct': is not true.
+════════════════════════════════════════════════════════════════════════════════
+W/ImageReader_JNI(24851): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+E/flutter (24851): [ERROR:flutter/runtime/dart_vm_initializer.cc(40)] Unhandled Exception: 'package:flutter/src/widgets/framework.dart': Failed assertion: line 5246 pos 12: '_lifecycleState != _ElementLifecycle.defunct': is not true.
+E/flutter (24851): #0      _AssertionError._doThrowNew (dart:core-patch/errors_patch.dart:67:4)
+E/flutter (24851): #1      _AssertionError._throwNew (dart:core-patch/errors_patch.dart:49:5)
+E/flutter (24851): #2      Element.markNeedsBuild (package:flutter/src/widgets/framework.dart:5246:12)
+E/flutter (24851): #3      ConsumerStatefulElement.watch.<anonymous closure>.<anonymous closure> (package:flutter_riverpod/src/consumer.dart:566:20)
+E/flutter (24851): #4      ProviderBase.addListener.<anonymous closure> (package:riverpod/src/framework/provider_base.dart:98:41)
+E/flutter (24851): #5      _RootZone.runBinaryGuarded (dart:async/zone.dart:1790:10)
+E/flutter (24851): #6      ProviderElementBase._notifyListeners.<anonymous closure> (package:riverpod/src/framework/element.dart:542:28)
+E/flutter (24851): #7      ResultData.map (package:riverpod/src/result.dart:74:16)
+E/flutter (24851): #8      ProviderElementBase._notifyListeners (package:riverpod/src/framework/element.dart:536:14)
+E/flutter (24851): #9      ProviderElementBase.setState (package:riverpod/src/framework/element.dart:140:7)
+E/flutter (24851): #10     StateNotifier.state= (package:state_notifier/state_notifier.dart:227:31)
+E/flutter (24851): #11     PlayerNotifier._startPositionPolling.<anonymous closure> (package:tor_stream/features/player/providers/player_provider.dart:156:9)
+E/flutter (24851): <asynchronous suspension>
+E/flutter (24851):
+W/ImageReader_JNI(24851): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+
+════════ Exception caught by foundation library ════════════════════════════════
+'package:flutter/src/widgets/framework.dart': Failed assertion: line 5246 pos 12: '_lifecycleState != _ElementLifecycle.defunct': is not true.
+════════════════════════════════════════════════════════════════════════════════
 
 ════════ Exception caught by foundation library ════════════════════════════════
 'package:flutter/src/widgets/framework.dart': Failed assertion: line 5246 pos 12: '_lifecycleState != _ElementLifecycle.defunct': is not true.
 ════════════════════════════════════════════════════════════════════════════════
 3
-W/ImageReader_JNI(22909): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI(24851): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+
+════════ Exception caught by foundation library ════════════════════════════════
+'package:flutter/src/widgets/framework.dart': Failed assertion: line 5246 pos 12: '_lifecycleState != _ElementLifecycle.defunct': is not true.
+════════════════════════════════════════════════════════════════════════════════
+4
+W/ImageReader_JNI(24851): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+
+════════ Exception caught by foundation library ════════════════════════════════
+'package:flutter/src/widgets/framework.dart': Failed assertion: line 5246 pos 12: '_lifecycleState != _ElementLifecycle.defunct': is not true.
+════════════════════════════════════════════════════════════════════════════════
+2
+W/ImageReader_JNI(24851): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+
+════════ Exception caught by foundation library ════════════════════════════════
+'package:flutter/src/widgets/framework.dart': Failed assertion: line 5246 pos 12: '_lifecycleState != _ElementLifecycle.defunct': is not true.
+════════════════════════════════════════════════════════════════════════════════
+4
+W/ImageReader_JNI(24851): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
 
 ════════ Exception caught by foundation library ════════════════════════════════
 'package:flutter/src/widgets/framework.dart': Failed assertion: line 5246 pos 12: '_lifecycleState != _ElementLifecycle.defunct': is not true.
 ════════════════════════════════════════════════════════════════════════════════
 3
-W/ImageReader_JNI(22909): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI(24851): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+
+════════ Exception caught by foundation library ════════════════════════════════
+'package:flutter/src/widgets/framework.dart': Failed assertion: line 5246 pos 12: '_lifecycleState != _ElementLifecycle.defunct': is not true.
+════════════════════════════════════════════════════════════════════════════════
+2
+W/ImageReader_JNI(24851): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+
+════════ Exception caught by foundation library ════════════════════════════════
+'package:flutter/src/widgets/framework.dart': Failed assertion: line 5246 pos 12: '_lifecycleState != _ElementLifecycle.defunct': is not true.
+════════════════════════════════════════════════════════════════════════════════
+4
+W/ImageReader_JNI(24851): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+
+════════ Exception caught by foundation library ════════════════════════════════
+'package:flutter/src/widgets/framework.dart': Failed assertion: line 5246 pos 12: '_lifecycleState != _ElementLifecycle.defunct': is not true.
+════════════════════════════════════════════════════════════════════════════════
+3
+W/ImageReader_JNI(24851): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+
+════════ Exception caught by foundation library ════════════════════════════════
+'package:flutter/src/widgets/framework.dart': Failed assertion: line 5246 pos 12: '_lifecycleState != _ElementLifecycle.defunct': is not true.
+════════════════════════════════════════════════════════════════════════════════
+3
+W/ImageReader_JNI(24851): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+
+════════ Exception caught by foundation library ════════════════════════════════
+'package:flutter/src/widgets/framework.dart': Failed assertion: line 5246 pos 12: '_lifecycleState != _ElementLifecycle.defunct': is not true.
+════════════════════════════════════════════════════════════════════════════════
+3
+W/ImageReader_JNI(24851): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+
+════════ Exception caught by foundation library ════════════════════════════════
+'package:flutter/src/widgets/framework.dart': Failed assertion: line 5246 pos 12: '_lifecycleState != _ElementLifecycle.defunct': is not true.
+════════════════════════════════════════════════════════════════════════════════
+2
+W/ImageReader_JNI(24851): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+
+════════ Exception caught by foundation library ════════════════════════════════
+'package:flutter/src/widgets/framework.dart': Failed assertion: line 5246 pos 12: '_lifecycleState != _ElementLifecycle.defunct': is not true.
+════════════════════════════════════════════════════════════════════════════════
+4
+W/ImageReader_JNI(24851): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers

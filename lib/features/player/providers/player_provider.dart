@@ -39,22 +39,26 @@ class PlayerNotifier extends StateNotifier<StreamState> {
   final BigInt torrentId;
   final int fileIndex;
   Timer? _positionTimer;
+  bool _disposed = false;
 
   PlayerNotifier(this.torrentId, this.fileIndex) : super(const StreamState());
 
   Future<void> init() async {
     try {
-      // Resume the torrent in case it was added paused (stream-only mode).
-      // This allows librqbit to fetch pieces on demand as the streaming server
-      // reads them. The torrent will NOT download to disk beyond what is read.
       try {
         await resumeTorrent(id: torrentId);
       } catch (_) {}
+      if (_disposed) return;
       await startStream(torrentId: torrentId, fileIndex: fileIndex);
+      if (_disposed) return;
       final url = await getStreamUrl(torrentId: torrentId, fileIndex: fileIndex);
+      if (_disposed) return;
       final buf = await getBufferStatus(torrentId: torrentId, fileIndex: fileIndex);
+      if (_disposed) return;
       final stats = await getStreamStatistics(torrentId: torrentId, fileIndex: fileIndex);
+      if (_disposed) return;
       final torrentInfo = await getTorrentStatus(id: torrentId);
+      if (_disposed) return;
       state = state.copyWith(
         isInitialized: true,
         streamUrl: url,
@@ -73,41 +77,50 @@ class PlayerNotifier extends StateNotifier<StreamState> {
       );
       _startPositionPolling();
     } catch (e) {
-      state = state.copyWith(error: 'Failed to init stream: $e');
+      if (!_disposed) state = state.copyWith(error: 'Failed to init stream: $e');
     }
   }
 
   Future<void> play() async {
+    if (_disposed) return;
     try {
       await startStream(torrentId: torrentId, fileIndex: fileIndex);
-      state = state.copyWith(
-        playback: state.playback?.copyWith(status: 'playing'),
-      );
+      if (!_disposed) {
+        state = state.copyWith(
+          playback: state.playback?.copyWith(status: 'playing'),
+        );
+      }
     } catch (e) {
-      state = state.copyWith(error: 'Play failed: $e');
+      if (!_disposed) state = state.copyWith(error: 'Play failed: $e');
     }
   }
 
   Future<void> pause() async {
+    if (_disposed) return;
     try {
       await pauseStream(torrentId: torrentId, fileIndex: fileIndex);
-      state = state.copyWith(
-        playback: state.playback?.copyWith(status: 'paused'),
-      );
+      if (!_disposed) {
+        state = state.copyWith(
+          playback: state.playback?.copyWith(status: 'paused'),
+        );
+      }
     } catch (e) {
-      state = state.copyWith(error: 'Pause failed: $e');
+      if (!_disposed) state = state.copyWith(error: 'Pause failed: $e');
     }
   }
 
   Future<void> seek(Duration position) async {
+    if (_disposed) return;
     try {
       final offsetBytes = BigInt.from(position.inMilliseconds * 1000);
       await seekStream(torrentId: torrentId, fileIndex: fileIndex, offsetBytes: offsetBytes);
-      state = state.copyWith(
-        playback: state.playback?.copyWith(position: position),
-      );
+      if (!_disposed) {
+        state = state.copyWith(
+          playback: state.playback?.copyWith(position: position),
+        );
+      }
     } catch (e) {
-      state = state.copyWith(error: 'Seek failed: $e');
+      if (!_disposed) state = state.copyWith(error: 'Seek failed: $e');
     }
   }
 
@@ -117,7 +130,7 @@ class PlayerNotifier extends StateNotifier<StreamState> {
     try {
       await stopStream(torrentId: torrentId, fileIndex: fileIndex);
     } catch (_) {}
-    if (mounted) {
+    if (!_disposed) {
       state = const StreamState();
     }
   }
@@ -125,18 +138,18 @@ class PlayerNotifier extends StateNotifier<StreamState> {
   void _startPositionPolling() {
     _positionTimer?.cancel();
     _positionTimer = Timer.periodic(const Duration(seconds: 2), (_) async {
-      if (!mounted) {
+      if (_disposed) {
         _positionTimer?.cancel();
         return;
       }
       try {
         final buf = await getBufferStatus(torrentId: torrentId, fileIndex: fileIndex);
-        if (!mounted) {
+        if (_disposed) {
           _positionTimer?.cancel();
           return;
         }
         final stats = await getStreamStatistics(torrentId: torrentId, fileIndex: fileIndex);
-        if (!mounted) {
+        if (_disposed) {
           _positionTimer?.cancel();
           return;
         }
@@ -159,6 +172,7 @@ class PlayerNotifier extends StateNotifier<StreamState> {
 
   @override
   void dispose() {
+    _disposed = true;
     _positionTimer?.cancel();
     _positionTimer = null;
     try {

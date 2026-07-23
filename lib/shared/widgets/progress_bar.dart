@@ -1,19 +1,20 @@
 import 'package:flutter/material.dart';
+import '../../app/theme.dart';
 
 class ProgressBar extends StatelessWidget {
   final double progress;
   final double height;
   final Color? backgroundColor;
-  final Color? progressColor;
   final bool showLabel;
+  final bool animated;
 
   const ProgressBar({
     super.key,
     required this.progress,
     this.height = 6,
     this.backgroundColor,
-    this.progressColor,
     this.showLabel = false,
+    this.animated = true,
   });
 
   @override
@@ -27,12 +28,15 @@ class ProgressBar extends StatelessWidget {
       children: [
         ClipRRect(
           borderRadius: BorderRadius.circular(height / 2),
-          child: LinearProgressIndicator(
-            value: clamped,
-            minHeight: height,
-            backgroundColor: backgroundColor ?? cs.surfaceContainerHighest,
-            valueColor: AlwaysStoppedAnimation(
-              progressColor ?? _progressColor(clamped, cs),
+          child: TweenAnimationBuilder<double>(
+            tween: Tween(begin: 0, end: clamped),
+            duration: animated ? const Duration(milliseconds: 600) : Duration.zero,
+            curve: Curves.easeOutCubic,
+            builder: (context, value, _) => LinearProgressIndicator(
+              value: value,
+              minHeight: height,
+              backgroundColor: backgroundColor ?? cs.surfaceContainerHighest,
+              valueColor: AlwaysStoppedAnimation(_gradientColor(clamped)),
             ),
           ),
         ),
@@ -43,6 +47,7 @@ class ProgressBar extends StatelessWidget {
               '${(clamped * 100).toStringAsFixed(1)}%',
               style: TextStyle(
                 fontSize: 11,
+                fontWeight: FontWeight.w600,
                 color: cs.onSurface.withValues(alpha: 0.6),
               ),
             ),
@@ -51,9 +56,10 @@ class ProgressBar extends StatelessWidget {
     );
   }
 
-  Color _progressColor(double p, ColorScheme cs) {
-    if (p >= 1.0) return const Color(0xFF2ECC71);
-    if (p > 0.5) return const Color(0xFF7C6EF8);
-    return const Color(0xFFFFB347);
+  Color _gradientColor(double p) {
+    if (p >= 1.0) return TorStreamTheme.accentGreen;
+    if (p > 0.66) return TorStreamTheme.seedColor;
+    if (p > 0.33) return const Color(0xFF9B59B6);
+    return TorStreamTheme.accentAmber;
   }
 }

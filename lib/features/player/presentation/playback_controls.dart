@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:video_player/video_player.dart';
 import '../../../bridge/generated/types.dart';
 import '../../../shared/models/torrent_state.dart';
+import '../../../app/theme.dart';
 import '../../home/providers/torrent_list_provider.dart';
 import '../providers/player_provider.dart';
 
@@ -10,12 +11,14 @@ class PlaybackControls extends ConsumerStatefulWidget {
   final BigInt torrentId;
   final int fileIndex;
   final VideoPlayerController? controller;
+  final bool isFullScreen;
 
   const PlaybackControls({
     super.key,
     required this.torrentId,
     required this.fileIndex,
     this.controller,
+    this.isFullScreen = false,
   });
 
   @override
@@ -35,17 +38,11 @@ class _PlaybackControlsState extends ConsumerState<PlaybackControls> {
       (t) => t.id == widget.torrentId,
       orElse: () => TorrentState(
         id: widget.torrentId,
-        infoHash: '',
-        name: '',
+        infoHash: '', name: '',
         status: FrbTorrentStatus.downloading,
-        progress: 0.0,
-        downloadSpeed: 0,
-        uploadSpeed: 0,
-        totalSize: 0,
-        downloaded: 0,
-        numPeers: 0,
-        savePath: '',
-        addedAtMs: 0,
+        progress: 0.0, downloadSpeed: 0, uploadSpeed: 0,
+        totalSize: 0, downloaded: 0, numPeers: 0,
+        savePath: '', addedAtMs: 0,
       ),
     );
 
@@ -64,164 +61,162 @@ class _PlaybackControlsState extends ConsumerState<PlaybackControls> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Chunk Stream Info Banner
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  const Icon(Icons.stream_rounded, size: 14, color: Color(0xFF7C6EF8)),
-                  const SizedBox(width: 6),
-                  Text(
-                    'Chunk Stream: $percentLoaded% Downloaded',
-                    style: const TextStyle(fontSize: 11, color: Colors.white70, fontWeight: FontWeight.w500),
+        if (widget.isFullScreen && percentLoaded > 0)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: TorStreamTheme.seedColor.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(4),
                   ),
-                ],
-              ),
-              Text(
-                activeTorrent.formattedSpeed,
-                style: const TextStyle(fontSize: 11, color: Color(0xFF2ECC71), fontWeight: FontWeight.w600),
-              ),
-            ],
+                  child: Text('$percentLoaded%',
+                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: TorStreamTheme.seedColor)),
+                ),
+                const SizedBox(width: 8),
+                Text(activeTorrent.formattedSpeed,
+                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: TorStreamTheme.accentGreen)),
+              ],
+            ),
           ),
-        ),
 
-        const SizedBox(height: 4),
-
-        // Interactive Slider Seekbar
         SliderTheme(
           data: SliderThemeData(
-            activeTrackColor: const Color(0xFF7C6EF8),
-            inactiveTrackColor: Colors.white.withValues(alpha: 0.2),
-            thumbColor: const Color(0xFF7C6EF8),
-            overlayColor: const Color(0xFF7C6EF8).withValues(alpha: 0.2),
-            trackHeight: 4,
-            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+            activeTrackColor: TorStreamTheme.seedColor,
+            inactiveTrackColor: Colors.white.withValues(alpha: widget.isFullScreen ? 0.15 : 0.12),
+            thumbColor: Colors.white,
+            overlayColor: TorStreamTheme.seedColor.withValues(alpha: 0.15),
+            trackHeight: widget.isFullScreen ? 4 : 3,
+            thumbShape: RoundSliderThumbShape(enabledThumbRadius: widget.isFullScreen ? 7 : 6),
+            overlayShape: const RoundSliderOverlayShape(overlayRadius: 16),
           ),
           child: Slider(
             value: currentSeconds,
             min: 0.0,
             max: maxSeconds,
-            onChanged: (val) {
-              setState(() {
-                _dragValue = val;
-              });
-            },
+            onChanged: (val) => setState(() => _dragValue = val),
             onChangeEnd: (val) {
-              setState(() {
-                _dragValue = null;
-              });
-              final targetDuration = Duration(seconds: val.toInt());
+              setState(() => _dragValue = null);
+              final target = Duration(seconds: val.toInt());
               if (controller != null && controller.value.isInitialized) {
-                controller.seekTo(targetDuration);
+                controller.seekTo(target);
               } else {
-                ref.read(playerProvider((torrentId: widget.torrentId, fileIndex: widget.fileIndex)).notifier).seek(targetDuration);
+                ref.read(playerProvider((torrentId: widget.torrentId, fileIndex: widget.fileIndex)).notifier).seek(target);
               }
             },
           ),
         ),
 
-        // Time Row (Position / Duration)
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: EdgeInsets.symmetric(horizontal: widget.isFullScreen ? 16 : 16),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 _formatDuration(Duration(seconds: currentSeconds.toInt())),
-                style: const TextStyle(fontSize: 12, color: Colors.white70, fontFamily: 'monospace'),
+                style: TextStyle(fontSize: widget.isFullScreen ? 12 : 11, color: Colors.white.withValues(alpha: 0.6), fontFamily: 'monospace'),
               ),
               Text(
                 duration > Duration.zero ? _formatDuration(duration) : '--:--',
-                style: const TextStyle(fontSize: 12, color: Colors.white70, fontFamily: 'monospace'),
+                style: TextStyle(fontSize: widget.isFullScreen ? 12 : 11, color: Colors.white.withValues(alpha: 0.6), fontFamily: 'monospace'),
               ),
             ],
           ),
         ),
 
-        const SizedBox(height: 12),
+        SizedBox(height: widget.isFullScreen ? 12 : 8),
 
-        // Controls Row: -10s, Play/Pause, +10s
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            IconButton(
-              icon: const Icon(Icons.replay_10_rounded, size: 36),
-              color: Colors.white,
-              onPressed: () {
-                final target = Duration(seconds: (position.inSeconds - 10).clamp(0, maxSeconds.toInt()));
-                if (controller != null && controller.value.isInitialized) {
-                  controller.seekTo(target);
+            _controlButton(Icons.replay_10_rounded, () {
+              final target = Duration(seconds: (position.inSeconds - 10).clamp(0, maxSeconds.toInt()));
+              if (controller != null && controller.value.isInitialized) {
+                controller.seekTo(target);
+              } else {
+                ref.read(playerProvider((torrentId: widget.torrentId, fileIndex: widget.fileIndex)).notifier).seek(target);
+              }
+            }),
+            SizedBox(width: widget.isFullScreen ? 40 : 32),
+            _playButton(isPlaying, () {
+              if (controller != null && controller.value.isInitialized) {
+                if (controller.value.isPlaying) {
+                  controller.pause();
                 } else {
-                  ref.read(playerProvider((torrentId: widget.torrentId, fileIndex: widget.fileIndex)).notifier).seek(target);
+                  controller.play();
                 }
-              },
-            ),
-            const SizedBox(width: 24),
-            Container(
-              width: 60,
-              height: 60,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: const Color(0xFF7C6EF8),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF7C6EF8).withValues(alpha: 0.4),
-                    blurRadius: 16,
-                    spreadRadius: 2,
-                  ),
-                ],
-              ),
-              child: IconButton(
-                icon: Icon(isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded, size: 34),
-                color: Colors.white,
-                onPressed: () {
-                  if (controller != null && controller.value.isInitialized) {
-                    if (controller.value.isPlaying) {
-                      controller.pause();
-                    } else {
-                      controller.play();
-                    }
-                    setState(() {});
-                  } else {
-                    if (isPlaying) {
-                      ref.read(playerProvider((torrentId: widget.torrentId, fileIndex: widget.fileIndex)).notifier).pause();
-                    } else {
-                      ref.read(playerProvider((torrentId: widget.torrentId, fileIndex: widget.fileIndex)).notifier).play();
-                    }
-                  }
-                },
-              ),
-            ),
-            const SizedBox(width: 24),
-            IconButton(
-              icon: const Icon(Icons.forward_10_rounded, size: 36),
-              color: Colors.white,
-              onPressed: () {
-                final target = Duration(seconds: (position.inSeconds + 10).clamp(0, maxSeconds.toInt()));
-                if (controller != null && controller.value.isInitialized) {
-                  controller.seekTo(target);
+                setState(() {});
+              } else {
+                if (isPlaying) {
+                  ref.read(playerProvider((torrentId: widget.torrentId, fileIndex: widget.fileIndex)).notifier).pause();
                 } else {
-                  ref.read(playerProvider((torrentId: widget.torrentId, fileIndex: widget.fileIndex)).notifier).seek(target);
+                  ref.read(playerProvider((torrentId: widget.torrentId, fileIndex: widget.fileIndex)).notifier).play();
                 }
-              },
-            ),
+              }
+            }),
+            SizedBox(width: widget.isFullScreen ? 40 : 32),
+            _controlButton(Icons.forward_10_rounded, () {
+              final target = Duration(seconds: (position.inSeconds + 10).clamp(0, maxSeconds.toInt()));
+              if (controller != null && controller.value.isInitialized) {
+                controller.seekTo(target);
+              } else {
+                ref.read(playerProvider((torrentId: widget.torrentId, fileIndex: widget.fileIndex)).notifier).seek(target);
+              }
+            }),
           ],
         ),
       ],
     );
   }
 
+  Widget _controlButton(IconData icon, VoidCallback onPressed) {
+    final size = widget.isFullScreen ? 36.0 : 32.0;
+    return IconButton(
+      icon: Icon(icon, size: size),
+      color: Colors.white.withValues(alpha: 0.85),
+      splashRadius: widget.isFullScreen ? 24 : 22,
+      onPressed: onPressed,
+    );
+  }
+
+  Widget _playButton(bool isPlaying, VoidCallback onPressed) {
+    final size = widget.isFullScreen ? 64.0 : 56.0;
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: const LinearGradient(
+          colors: [TorStreamTheme.seedColor, Color(0xFF6A5ACD)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: TorStreamTheme.seedColor.withValues(alpha: widget.isFullScreen ? 0.4 : 0.35),
+            blurRadius: widget.isFullScreen ? 18 : 14,
+            spreadRadius: 1,
+          ),
+        ],
+      ),
+      child: IconButton(
+        icon: Icon(isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded, size: widget.isFullScreen ? 34 : 30),
+        color: Colors.white,
+        padding: EdgeInsets.zero,
+        onPressed: onPressed,
+      ),
+    );
+  }
+
   String _formatDuration(Duration duration) {
-    final hours = duration.inHours;
-    final minutes = duration.inMinutes.remainder(60);
-    final seconds = duration.inSeconds.remainder(60);
-    if (hours > 0) {
-      return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
-    } else {
-      return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+    final h = duration.inHours;
+    final m = duration.inMinutes.remainder(60);
+    final s = duration.inSeconds.remainder(60);
+    if (h > 0) {
+      return '${h.toString().padLeft(2, '0')}:${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
     }
+    return '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
   }
 }

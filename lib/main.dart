@@ -4,13 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import 'bridge/bridge.dart';
 import 'app/app.dart';
-
-import 'shared/services/stream_store.dart';
+import 'shared/torrent_box.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await StreamStore.instance.init();
+  await TorrentBox.instance.init();
   await RustLib.init();
 
   final dir = await getApplicationDocumentsDirectory();

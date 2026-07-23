@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../bridge/bridge.dart';
 import 'package:tor_stream/shared/models/torrent_state.dart';
+import '../../../app/theme.dart';
 import '../providers/torrent_list_provider.dart';
 import '../../search/providers/search_provider.dart';
 import 'torrent_tile.dart';
@@ -14,13 +15,24 @@ class HomeScreen extends ConsumerStatefulWidget {
   ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends ConsumerState<HomeScreen> {
+class _HomeScreenState extends ConsumerState<HomeScreen>
+    with SingleTickerProviderStateMixin {
   final _searchController = TextEditingController();
+  final _searchFocusNode = FocusNode();
   bool _showSearch = false;
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+  }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _searchFocusNode.dispose();
+    _tabController.dispose();
     super.dispose();
   }
 
@@ -32,95 +44,116 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ? ref.watch(searchResultsProvider(searchQuery))
         : null;
 
-    return DefaultTabController(
-      length: 2,
-      child: Scaffold(
-        appBar: AppBar(
-          title: _showSearch
-              ? TextField(
-                  controller: _searchController,
-                  autofocus: true,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: InputDecoration(
-                    hintText: 'Search torrents, movies, files...',
-                    hintStyle: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.4),
-                    ),
-                    border: InputBorder.none,
-                  ),
-                  onChanged: (_) => setState(() {}),
-                )
-              : const Text('TorStream'),
-          actions: [
-            if (!_showSearch)
-              IconButton(
-                icon: const Icon(Icons.search_rounded),
-                onPressed: () => setState(() => _showSearch = true),
-              ),
-            if (_showSearch)
-              IconButton(
-                icon: const Icon(Icons.close_rounded),
-                onPressed: () {
-                  setState(() {
-                    _showSearch = false;
-                    _searchController.clear();
-                  });
-                },
-              ),
-            if (!_showSearch)
-              IconButton(
-                icon: const Icon(Icons.history_rounded),
-                tooltip: 'Watch History',
-                onPressed: () => context.push('/history'),
-              ),
-            if (!_showSearch)
-              IconButton(
-                icon: const Icon(Icons.settings_rounded),
-                onPressed: () => context.push('/settings'),
-              ),
-          ],
-          bottom: _showSearch && searchQuery.isNotEmpty
-              ? null
-              : const TabBar(
-                  indicatorColor: Color(0xFF7C6EF8),
-                  labelColor: Color(0xFF7C6EF8),
-                  unselectedLabelColor: Colors.white54,
-                  tabs: [
-                    Tab(
-                      icon: Icon(Icons.downloading_rounded, size: 20),
-                      text: 'Downloading',
-                    ),
-                    Tab(
-                      icon: Icon(Icons.check_circle_outline_rounded, size: 20),
-                      text: 'Downloaded',
-                    ),
-                  ],
+    return Scaffold(
+      appBar: AppBar(
+        title: _showSearch
+            ? TextField(
+                controller: _searchController,
+                focusNode: _searchFocusNode,
+                autofocus: true,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.white),
+                decoration: InputDecoration(
+                  hintText: 'Search torrents, movies...',
+                  hintStyle: TextStyle(color: TorStreamTheme.textSecondary.withValues(alpha: 0.6)),
+                  border: InputBorder.none,
+                  filled: false,
+                  contentPadding: EdgeInsets.zero,
                 ),
-        ),
-        body: _showSearch && searchQuery.isNotEmpty
-            ? _buildSearchResults(searchAsync!)
-            : TabBarView(
-                children: [
-                  _buildTorrentList(torrentsAsync, isCompletedTab: false),
-                  _buildTorrentList(torrentsAsync, isCompletedTab: true),
+                onChanged: (_) => setState(() {}),
+              )
+            : const Text('TorStream'),
+        actions: [
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 200),
+            child: _showSearch
+                ? IconButton(
+                    key: const ValueKey('close'),
+                    icon: const Icon(Icons.close_rounded),
+                    onPressed: () {
+                      setState(() {
+                        _showSearch = false;
+                        _searchController.clear();
+                      });
+                      _searchFocusNode.unfocus();
+                    },
+                  )
+                : Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.search_rounded),
+                        onPressed: () => setState(() => _showSearch = true),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.history_rounded),
+                        tooltip: 'Watch History',
+                        onPressed: () => context.push('/history'),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.tune_rounded),
+                        tooltip: 'Settings',
+                        onPressed: () => context.push('/settings'),
+                      ),
+                    ],
+                  ),
+          ),
+        ],
+        bottom: !_showSearch
+            ? TabBar(
+                controller: _tabController,
+                tabs: const [
+                  Tab(
+                    icon: Icon(Icons.downloading_rounded, size: 18),
+                    text: 'Downloading',
+                  ),
+                  Tab(
+                    icon: Icon(Icons.check_circle_outline_rounded, size: 18),
+                    text: 'Downloaded',
+                  ),
                 ],
-              ),
-        floatingActionButton: _showSearch
-            ? null
-            : FloatingActionButton(
-                onPressed: () => context.push('/add-torrent'),
-                child: const Icon(Icons.add_rounded),
-              ),
+              )
+            : null,
       ),
+      body: _showSearch && searchQuery.isNotEmpty
+          ? AnimatedSwitcher(
+              duration: const Duration(milliseconds: 250),
+              child: _buildSearchResults(searchAsync!, key: ValueKey('search_$searchQuery')),
+            )
+          : TabBarView(
+              controller: _tabController,
+              children: [
+                _buildTorrentList(torrentsAsync, isCompletedTab: false),
+                _buildTorrentList(torrentsAsync, isCompletedTab: true),
+              ],
+            ),
+      floatingActionButton: _showSearch
+          ? null
+          : FloatingActionButton(
+              onPressed: () => context.push('/add-torrent'),
+              backgroundColor: TorStreamTheme.seedColor,
+              elevation: 4,
+              child: const Icon(Icons.add_rounded, color: Colors.white),
+            ),
     );
   }
 
-  Widget _buildSearchResults(AsyncValue<List<FrbSearchResultItem>> searchAsync) {
+  Widget _buildSearchResults(AsyncValue<List<FrbSearchResultItem>> searchAsync, {Key? key}) {
     final cs = Theme.of(context).colorScheme;
     return searchAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const Center(
+        child: SizedBox(
+          width: 28, height: 28,
+          child: CircularProgressIndicator(strokeWidth: 2.5),
+        ),
+      ),
       error: (e, _) => Center(
-        child: Text('Search failed: $e', style: TextStyle(color: cs.error)),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.error_outline_rounded, size: 40, color: cs.error.withValues(alpha: 0.7)),
+            const SizedBox(height: 12),
+            Text('Search failed', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.6))),
+          ],
+        ),
       ),
       data: (results) {
         if (results.isEmpty) {
@@ -128,16 +161,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  Icons.search_off_rounded,
-                  size: 48,
-                  color: cs.onSurface.withValues(alpha: 0.2),
-                ),
+                Icon(Icons.search_off_rounded, size: 48, color: cs.onSurface.withValues(alpha: 0.15)),
                 const SizedBox(height: 12),
-                Text(
-                  'No results found',
-                  style: TextStyle(color: cs.onSurface.withValues(alpha: 0.6)),
-                ),
+                Text('No results found', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.5))),
               ],
             ),
           );
@@ -154,29 +180,25 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget _buildTorrentList(AsyncValue<List<TorrentState>> torrentsAsync, {required bool isCompletedTab}) {
     final cs = Theme.of(context).colorScheme;
     return torrentsAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const Center(
+        child: SizedBox(
+          width: 28, height: 28,
+          child: CircularProgressIndicator(strokeWidth: 2.5),
+        ),
+      ),
       error: (err, _) => Center(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(32),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.error_outline_rounded, size: 48, color: cs.error),
+              Icon(Icons.error_outline_rounded, size: 44, color: cs.error.withValues(alpha: 0.7)),
               const SizedBox(height: 16),
-              Text(
-                'Failed to load torrents',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                '$err',
-                style: TextStyle(color: cs.onSurface.withValues(alpha: 0.6)),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16),
+              Text('Failed to load', style: Theme.of(context).textTheme.titleMedium?.copyWith(color: cs.onSurface.withValues(alpha: 0.7))),
+              const SizedBox(height: 12),
               FilledButton.icon(
                 onPressed: () => ref.read(torrentListNotifierProvider.notifier).refresh(),
-                icon: const Icon(Icons.refresh_rounded),
+                icon: const Icon(Icons.refresh_rounded, size: 18),
                 label: const Text('Retry'),
               ),
             ],
@@ -184,42 +206,43 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ),
       ),
       data: (torrents) {
-        final filteredTorrents = torrents.where((t) {
-          return isCompletedTab ? t.isCompleted : !t.isCompleted;
-        }).toList();
+        final filtered = torrents.where((t) => isCompletedTab ? t.isCompleted : !t.isCompleted).toList();
 
-        if (filteredTorrents.isEmpty) {
+        if (filtered.isEmpty) {
           return Center(
             child: Padding(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(32),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(
-                    isCompletedTab ? Icons.check_circle_outline_rounded : Icons.downloading_rounded,
-                    size: 64,
-                    color: cs.onSurface.withValues(alpha: 0.2),
+                  Container(
+                    width: 64, height: 64,
+                    decoration: BoxDecoration(
+                      color: cs.onSurface.withValues(alpha: 0.05),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Icon(
+                      isCompletedTab ? Icons.check_circle_outline_rounded : Icons.downloading_rounded,
+                      size: 28, color: cs.onSurface.withValues(alpha: 0.2),
+                    ),
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    isCompletedTab ? 'No downloaded torrents yet' : 'No active downloads',
-                    style: Theme.of(context).textTheme.titleMedium,
+                    isCompletedTab ? 'No completed downloads' : 'No active downloads',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(color: cs.onSurface.withValues(alpha: 0.6)),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   Text(
                     isCompletedTab
-                        ? 'Completed downloads will automatically show up here'
-                        : 'Add a magnet link or torrent file to start downloading',
-                    style: TextStyle(
-                      color: cs.onSurface.withValues(alpha: 0.6),
-                    ),
-                    textAlign: TextAlign.center,
+                        ? 'Completed downloads will appear here'
+                        : 'Add a magnet to start streaming',
+                    style: TextStyle(fontSize: 13, color: cs.onSurface.withValues(alpha: 0.35)),
                   ),
                   if (!isCompletedTab) ...[
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 20),
                     FilledButton.icon(
                       onPressed: () => context.push('/add-torrent'),
-                      icon: const Icon(Icons.add_rounded),
+                      icon: const Icon(Icons.add_rounded, size: 18),
                       label: const Text('Add Torrent'),
                     ),
                   ],
@@ -230,9 +253,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         }
 
         return ListView.builder(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          itemCount: filteredTorrents.length,
-          itemBuilder: (_, i) => TorrentTile(torrent: filteredTorrents[i]),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          itemCount: filtered.length,
+          itemBuilder: (_, i) => TorrentTile(torrent: filtered[i]),
         );
       },
     );
@@ -254,37 +277,28 @@ class _SearchResultTile extends StatelessWidget {
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: const Color(0xFF7C6EF8).withValues(alpha: 0.15),
-            borderRadius: BorderRadius.circular(8),
+            color: TorStreamTheme.seedColor.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(10),
           ),
-          child: const Icon(
-            Icons.movie_rounded,
-            color: Color(0xFF7C6EF8),
-            size: 20,
-          ),
+          child: Icon(Icons.movie_rounded, color: TorStreamTheme.seedColor, size: 20),
         ),
         title: Text(
-          result.title.isNotEmpty
-              ? result.title
-              : 'Torrent #${result.torrentId}',
+          result.title.isNotEmpty ? result.title : 'Torrent #${result.torrentId}',
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
+          style: Theme.of(context).textTheme.titleMedium,
         ),
         subtitle: Text(
           'File: ${result.fileName}',
-          style: TextStyle(
-            fontSize: 11,
-            color: cs.onSurface.withValues(alpha: 0.5),
-          ),
+          style: TextStyle(fontSize: 11, color: cs.onSurface.withValues(alpha: 0.5)),
         ),
         trailing: Chip(
-          label: Text(
-            result.category,
-            style: TextStyle(fontSize: 10, color: const Color(0xFF7C6EF8)),
-          ),
-          backgroundColor: const Color(0xFF7C6EF8).withValues(alpha: 0.1),
+          label: Text(result.category,
+            style: TextStyle(fontSize: 10, color: TorStreamTheme.seedColor)),
+          backgroundColor: TorStreamTheme.seedColor.withValues(alpha: 0.1),
           side: BorderSide.none,
           visualDensity: VisualDensity.compact,
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
         ),
       ),
     );
