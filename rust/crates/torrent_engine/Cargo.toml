@@ -23,6 +23,7 @@ hex                = { workspace = true }
 
 # ── BitTorrent engine ──────────────────────────────────────────────────────────
 librqbit           = { workspace = true }
+librqbit-core      = { version = "9.0.0-rc.0", features = ["sha1-crypto-hash"] }
 
 # ── Internal crates ────────────────────────────────────────────────────────────
 torrent_core       = { path = "../torrent_core" }

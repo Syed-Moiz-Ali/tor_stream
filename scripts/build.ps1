@@ -123,12 +123,18 @@ if ($needCodegen) {
 # -- Step 4: Build Rust .so for Android ---------------------------------------
 Write-Step "4/5  Rust cross-compile for Android ($ProfileName)"
 
-# aws-lc-sys: set env var to skip NASM assembly (uses C code fallback)
+# aws-lc-sys: use C code instead of NASM assembly
 $env:AWS_LC_SYS_NO_ASM = "1"
 
 Push-Location $RustDir
 foreach ($abi in $AbiList) {
     Write-Info "Building $abi..."
+
+    # aws-lc-sys: tell CMake the correct Android ABI so it doesn't add -march=armv7-a
+    $env:AWS_LC_SYS_NO_ASM = "1"
+    $env:ANDROID_ABI = "arm64-v8a"
+    $env:ANDROID_NATIVE_API_LEVEL = "21"
+
     $cargoArgs = @("ndk", "-t", $abi.Trim(), "build", "--package", "ffi_bridge")
     if ($Release) { $cargoArgs += "--release" }
     & cargo @cargoArgs

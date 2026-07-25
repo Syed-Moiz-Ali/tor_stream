@@ -3,10 +3,13 @@ package com.example.tor_stream.player
 import android.content.Context
 import android.net.Uri
 import androidx.annotation.OptIn
+import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
+import androidx.media3.exoplayer.upstream.DefaultAllocator
 import com.example.tor_stream.bridge.RustDataSourceFactory
 import io.flutter.plugin.common.MethodChannel
 
@@ -23,7 +26,20 @@ class PlayerManager(
     fun prepareStream(torrentId: Long, fileIndex: Int, fileSize: Long, title: String) {
         release()
 
-        val player = ExoPlayer.Builder(context).build()
+        // Aggressive micro-buffer: start playback after just 500ms of data
+        val loadControl = DefaultLoadControl.Builder()
+            .setAllocator(DefaultAllocator(true, C.DEFAULT_BUFFER_SEGMENT_SIZE))
+            .setBufferDurationsMs(
+                /* minBufferMs        = */ 2000,
+                /* maxBufferMs        = */ 10000,
+                /* bufferForPlaybackMs = */ 500,
+                /* bufferForPlaybackAfterRebufferMs = */ 1000
+            )
+            .build()
+
+        val player = ExoPlayer.Builder(context)
+            .setLoadControl(loadControl)
+            .build()
         exoPlayer = player
 
         val listenerImpl = PlaybackListener(channel)

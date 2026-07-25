@@ -88,9 +88,33 @@ impl StreamingPipeline {
             fatal: false,
         });
 
+        // Signal librqbit: download first 512KB + last 1MB FIRST.
+        // librqbit's scheduler prioritizes pieces that have active stream readers.
+        self.spawn_header_reader(0, 512 * 1024).await; // first 512KB (ftyp + moov headers)
+        if self.file_size > 1024 * 1024 {
+            self.spawn_header_reader(self.file_size - 1024 * 1024, 1024 * 1024).await; // last 1MB (moov atom)
+        }
+
         self.state_machine.transition_to(PlaybackState::Buffering).await?;
         self.scheduler.update_playback_position(0).await;
         Ok(())
+    }
+
+    /// Open a background librqbit stream reader for a byte range.
+    /// librqbit sees the active read and prioritizes downloading those pieces.
+    async fn spawn_header_reader(&self, offset: u64, length: u64) {
+        use std::io::SeekFrom;
+        use tokio::io::{AsyncSeekExt, AsyncReadExt};
+        let tid = self.torrent_id;
+        let fidx = self.file_index;
+        tokio::spawn(async move {
+            if let Ok(mut reader) = torrent_engine::bridge::open_stream(tid, fidx).await {
+                if reader.seek(SeekFrom::Start(offset)).await.is_ok() {
+                    let mut buf = vec![0u8; length as usize];
+                    let _ = reader.read(&mut buf).await;
+                }
+            }
+        });
     }
 
     pub async fn start(&self) -> Result<()> {

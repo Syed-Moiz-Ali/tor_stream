@@ -1,0 +1,137 @@
+Transform the player_screen.dart into a production-grade, VLC-inspired video player with cinematic UI, fluid gestures, and professional UX. The current implementation is functional but visually basic.
+
+Design Philosophy
+Dark & Minimal: True blacks (#000000) as base, subtle glass-morphism overlays
+Smooth & Responsive: 60fps animations, spring physics, haptic feedback
+Intuitive: VLC/IINA/Infuse user mental model — users should feel at home instantly
+Accessible: Large hit targets (min 44px), high contrast labels, gesture hints for new users
+Required Features
+1. Top Bar (Fullscreen)
+Left: Back button + filename (truncated with ellipsis, max 1 line)
+Center: Nothing (keep clean)
+Right: Speed badge → Sleep timer → Aspect ratio → Lock → Pip → Fullscreen exit
+All icons: 20px, white (70% opacity default, 100% on hover/tap)
+Background: Linear gradient black (70% top → transparent) 60px height
+Auto-hide after 3s no interaction, show on tap
+2. Bottom Controls Bar (Fullscreen)
+Layout: Two rows stacked
+Row 1 (Seek): Custom slider with:
+Track played: seedColor (#7C6EF8)
+Track buffered: white (20% opacity)
+Track remaining: white (8% opacity)
+Thumb: white circle, 14dp, dropshadow, expands to 22dp on drag
+Time labels: monospace, 12px, white 60% opacity, positioned below slider ends
+Show current time left, remaining time right (negative "-5:30")
+Row 2 (Controls): [Time] — [<-10s] — [40px gap] — [Play/Pause — 64dp circle with gradient + shadow] — [40px gap] — [+10s>] — [Time]
+Time: position absolute left/right, monospace 12px white 60%
+Background: Linear gradient transparent → black 80% bottom, 140px height
+3. Gesture System
+Gesture	Zone	Action
+Vertical swipe	Left 40%	Brightness control with HUD
+Vertical swipe	Right 40%	Volume control with HUD
+Horizontal swipe	Bottom 15%	Seek forward/backward 10s
+Double tap	Left 33%	Skip back 10s
+Double tap	Right 33%	Skip forward 10s
+Single tap	Any	Toggle UI overlay
+Pinch	Any	Zoom to fit / fill toggle
+HUD: Center-screen semicircle (80dp), dark bg (70% opacity), 16dp radius
+Icon (28dp) + label ("75%") in monospace 14dp
+Spring animation (300ms) on show/hide
+Auto-dismiss 1.2s after gesture ends
+4. Playback Speed Control
+Tap speed badge → shows horizontal pill selector
+Options: 0.25x, 0.5x, 0.75x, 1x, 1.25x, 1.5x, 2x
+Selected option: filled seedColor, white text
+Unselected: dark bg (20% opacity), white text 60%
+Smooth horizontal scrollable, snaps to nearest
+Mini speed indicator in corner when not 1x: pill shape, 8px padding, 10px font
+5. Sleep Timer
+Tap icon → bottom sheet with options
+Title: "Sleep Timer" 16px bold, 24px padding top
+Options: "15 minutes", "30 minutes", "45 minutes", "60 minutes", "End of file"
+Each: ListTile with timer icon + text
+Active state: amber icon in top bar, tooltip "Sleep: Xm remaining"
+Cancel: tap again → "Cancel" option in sheet
+6. Aspect Ratio
+Tap → cycle: "Default" → "16:9" → "4:3" → "Fill" → "Crop"
+Toast notification showing current mode
+Crop mode: scale video to fill container (overflow hidden)
+7. Screen Lock
+Lock icon toggles lock mode
+When locked: transparent overlay with lock icon (center, 40dp)
+Message: "Double-tap to unlock" (13px, white 50%)
+Gesture to unlock: double-tap anywhere
+Locked mode: all gestures disabled, only double-tap works
+8. Picture-in-Picture
+PiP icon in top bar
+Requires Android O+ / iOS 14+
+On PiP: send current position to native PiP handler
+Restore: full player state restored (position, speed, volume)
+9. Subtitle Support
+Subtitle icon in top bar (when subs available)
+Tap → bottom sheet listing available subtitle tracks
+Options: "Off", each subtitle track by language/name
+Selected: checkmark on right
+Subtitle overlay rendering: positioned at bottom 10% of video, centered
+Text style: white with black outline, 16sp, custom font
+Max 2 lines, word wrap
+10. Audio Track Switching
+Audio icon in top bar (when multiple tracks)
+Tap → bottom sheet listing available audio tracks
+Each: track language + codec + channels count
+Selected: checkmark
+11. Equalizer Presets
+Equalizer icon in top bar (fullscreen only)
+Tap → horizontal scrollable preset selector
+Presets: "Flat", "Classical", "Dance", "Electronic", "Hip Hop", "Jazz", "Pop", "Rock", "Voice"
+Active preset: highlighted
+Custom: sliders for 10 bands (if advanced mode enabled)
+12. Chapter Navigation
+Chapter marker dots on seek bar (when chapters available)
+Tap chapter dot → seeks to chapter start
+Long press chapter dot → shows chapter name tooltip
+13. Gesture Hints (First-Time User)
+On first fullscreen entry, show translucent hints:
+Left side: "Swipe for brightness" (fade out after 3s)
+Right side: "Swipe for volume" (fade out after 3s)
+Bottom: "Swipe to seek" (fade out after 3s)
+Store "hints shown" flag in SharedPreferences
+Technical Requirements
+dependencies:
+  screen_brightness: ^1.0.0       # For brightness gesture
+  volume_controller: ^0.0.3       # For system volume (not just media)
+  media_kit: ^1.1.10               # For subtitle/audio track support
+  media_kit_video: ^0.0.14
+Animation Specs
+UI overlay show/hide: AnimationController with 250ms Curves.easeInOut
+Gesture HUD: 300ms SpringDescription(mass: 1, stiffness: 300, damping: 25)
+Seek bar thumb scale: 200ms Curves.fastOutSlowIn
+Bottom sheet: natural iOS/Android sheet animation
+Speed selector: 200ms cross-fade between states
+Color Palette
+Background (video area): #000000
+Overlay bg: rgba(0, 0, 0, 0.6)
+Accent: #7C6EF8 (seedColor)
+Text primary: #FFFFFF (87%)
+Text secondary: rgba(255, 255, 255, 0.6)
+Text tertiary: rgba(255, 255, 255, 0.38)
+Buffered bar: rgba(255, 255, 255, 0.15)
+Sleep active: #FFB347 (amber)
+Error: #E74C3C
+Files to Modify
+lib/features/player/presentation/player_screen.dart — Main player UI (full rewrite)
+pubspec.yaml — Add new dependencies
+android/app/build.gradle.kts — Add any platform config for PiP if needed
+Deliverables
+Complete, compilable player_screen.dart with ALL features above
+Update pubspec.yaml with new deps
+All gestures working on real device
+Subtitle rendering (can use media_kit or custom overlay)
+No external state management changes needed (keep using existing providers)
+Landscape + portrait support
+Edge-to-edge on Android
+Non-Goals
+Do NOT modify Rust backend
+Do NOT modify other Flutter screens
+Do NOT change the streaming/data pipeline
+Keep VideoPlayerController as underlying player (swap to media_kit only for subtitle/audio features)

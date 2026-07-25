@@ -46,9 +46,14 @@ flutter_rust_bridge = "2"
 # Used instead of libtorrent-rasterbar C++ bindings, which have no stable Rust crate.
 # Flutter never knows this library exists — it is fully hidden behind our API.
 librqbit = { version = "9.0.0-rc.0", default-features = false, features = [
-    "rust-tls",      # Pure-Rust TLS → no OpenSSL cross-compilation needed
     "http-api-client",
 ] }
+
+# ── Patches: pure-Rust SHA1 replacement for librqbit-sha1-wrapper ─────────────
+# Upstream uses aws-lc-rs (needs NASM/CMake) or crypto-hash (needs OpenSSL).
+# This patch replaces both with pure Rust sha1 crate — no native deps needed.
+[patch.crates-io]
+librqbit-sha1-wrapper = { path = "patches/librqbit-sha1-wrapper" }
 
 # ── Release profile: small + fast .so for Android ────────────────────────────
 [profile.release]

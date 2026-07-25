@@ -18,8 +18,8 @@ use crate::models::StreamUrl;
 
 static SERVER: Lazy<Mutex<Option<Arc<StreamServer>>>> = Lazy::new(|| Mutex::new(None));
 
-const CHUNK_SIZE: usize = 64 * 1024;
-const READ_TIMEOUT: Duration = Duration::from_secs(15);
+const CHUNK_SIZE: usize = 16 * 1024;  // 16KB — smaller = faster first byte to player
+const READ_TIMEOUT: Duration = Duration::from_secs(5);  // Retry faster if piece not ready
 
 /// Local HTTP stream server.
 #[derive(Clone)]
