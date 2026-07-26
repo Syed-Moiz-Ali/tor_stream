@@ -227,7 +227,7 @@ impl TorrentEngine {
 
 /// Poll all torrents every 2 seconds and emit progress events.
 async fn run_poll_task(engine: Arc<TorrentEngine>) {
-    let mut interval = tokio::time::interval(Duration::from_secs(2));
+    let mut interval = tokio::time::interval(Duration::from_secs(3));
     interval.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
 
     loop {

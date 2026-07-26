@@ -4,11 +4,46 @@ import 'package:go_router/go_router.dart';
 import '../../../app/theme.dart';
 import '../providers/settings_provider.dart';
 
-class SettingsScreen extends ConsumerWidget {
+class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends ConsumerState<SettingsScreen> {
+  double _storageCap = 10.0;
+  bool _deleteAfterWatching = false;
+  bool _autoEvict = true;
+  bool _resumeAfterReboot = false;
+
+  @override
+  void initState() {
+    super.initState();
+    ref.read(settingsProvider.future).then((s) {
+      if (mounted) {
+        setState(() {
+          _storageCap = s.storageCapGb;
+          _deleteAfterWatching = s.deleteAfterWatching;
+          _autoEvict = s.autoEvictEnabled;
+          _resumeAfterReboot = s.resumeAfterReboot;
+        });
+      }
+    });
+  }
+
+  Future<void> _persist() async {
+    await SettingsState(
+      storageCapGb: _storageCap,
+      deleteAfterWatching: _deleteAfterWatching,
+      autoEvictEnabled: _autoEvict,
+      darkMode: true,
+      resumeAfterReboot: _resumeAfterReboot,
+    ).persist();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final healthAsync = ref.watch(healthStatusProvider);
     final storageAsync = ref.watch(storageReportProvider);
 
@@ -55,12 +90,65 @@ class SettingsScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 16),
-          _sectionHeader('STORAGE'),
-          storageAsync.when(
-            loading: () => const _InfoTile(title: 'Checking...', value: ''),
-            error: (e, _) => const _InfoTile(title: 'Storage Check', value: 'Error', icon: Icons.error_outline_rounded, iconColor: TorStreamTheme.accentRed),
-            data: (report) => _InfoTile(title: 'Total Space', value: _formatBytes(report?.totalSpaceBytes ?? 0),
-              icon: Icons.folder_rounded),
+          _sectionHeader('STORAGE MANAGEMENT'),
+          Card(
+            margin: const EdgeInsets.symmetric(vertical: 4),
+            child: Padding(
+              padding: const EdgeInsets.all(14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  storageAsync.when(
+                    loading: () => const _InfoTile(title: 'Checking...', value: ''),
+                    error: (e, _) => const _InfoTile(title: 'Storage Check', value: 'Error', icon: Icons.error_outline_rounded, iconColor: TorStreamTheme.accentRed),
+                    data: (report) => _InfoTile(title: 'Used / Total', value: '${_formatBytes(((report?.totalSpaceBytes ?? 0) - (report?.freeSpaceBytes ?? 0)).toInt())} / ${_formatBytes((report?.totalSpaceBytes ?? 0).toInt())}',
+                      icon: Icons.folder_rounded),
+                  ),
+                  const SizedBox(height: 12),
+                  Text('Storage Cap', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.85))),
+                  const SizedBox(height: 4),
+                  Text('${_storageCap.toStringAsFixed(0)} GB', style: TextStyle(fontSize: 21, fontWeight: FontWeight.w700, color: TorStreamTheme.seedColor)),
+                  Slider(
+                    value: _storageCap,
+                    min: 1,
+                    max: 100,
+                    divisions: 99,
+                    label: '${_storageCap.toStringAsFixed(0)} GB',
+                    onChanged: (v) => setState(() => _storageCap = v),
+                    onChangeEnd: (_) => _persist(),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          _SettingsSwitch(
+            title: 'Delete After Watching',
+            subtitle: 'Automatically delete files once playback is complete',
+            value: _deleteAfterWatching,
+            onChanged: (v) {
+              setState(() => _deleteAfterWatching = v);
+              _persist();
+            },
+          ),
+          _SettingsSwitch(
+            title: 'Auto-Free Up Space',
+            subtitle: 'Prompt to remove least-recently-watched files when storage is low',
+            value: _autoEvict,
+            onChanged: (v) {
+              setState(() => _autoEvict = v);
+              _persist();
+            },
+          ),
+          const SizedBox(height: 12),
+          _sectionHeader('BACKGROUND & RESUME'),
+          _SettingsSwitch(
+            title: 'Resume After Reboot',
+            subtitle: 'Automatically restart downloads after device reboot',
+            value: _resumeAfterReboot,
+            onChanged: (v) {
+              setState(() => _resumeAfterReboot = v);
+              _persist();
+            },
           ),
           const SizedBox(height: 16),
           _sectionHeader('ABOUT'),
@@ -90,6 +178,30 @@ class SettingsScreen extends ConsumerWidget {
     if (bytes < 1048576) return '${(bytes / 1024).toStringAsFixed(1)} KB';
     if (bytes < 1073741824) return '${(bytes / 1048576).toStringAsFixed(1)} MB';
     return '${(bytes / 1073741824).toStringAsFixed(2)} GB';
+  }
+}
+
+class _SettingsSwitch extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  const _SettingsSwitch({required this.title, required this.subtitle, required this.value, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 3),
+      child: SwitchListTile(
+        title: Text(title, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: cs.onSurface.withValues(alpha: 0.85))),
+        subtitle: Text(subtitle, style: TextStyle(fontSize: 11, color: cs.onSurface.withValues(alpha: 0.5))),
+        value: value,
+                activeTrackColor: TorStreamTheme.seedColor,
+        onChanged: onChanged,
+      ),
+    );
   }
 }
 

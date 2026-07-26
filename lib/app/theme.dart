@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class TorStreamTheme {
   // ── 2026 Modern Theme Palette ──────────────────────────────────────────────
@@ -10,9 +11,25 @@ class TorStreamTheme {
   static const Color accentAmber     = Color(0xFFF59E0B); // Amber
   static const Color accentRed       = Color(0xFFEF4444); // Rose Red
   static const Color textSecondary   = Color(0xFF94A3B8); // Muted Slate Gray
-  static const Color dividerColor   = Color(0x1AFFFFFF); // Ultra-thin Divider (10% White)
+  static const Color dividerColor    = Color(0x1AFFFFFF); // Ultra-thin Divider (10% White)
+
+  static TextTheme _textTheme() {
+    final base = GoogleFonts.plusJakartaSansTextTheme();
+    return TextTheme(
+      headlineLarge: base.headlineLarge?.copyWith(fontSize: 28, fontWeight: FontWeight.w700, letterSpacing: -0.5),
+      headlineMedium: base.headlineMedium?.copyWith(fontSize: 22, fontWeight: FontWeight.w600, letterSpacing: -0.3),
+      titleLarge: base.titleLarge?.copyWith(fontSize: 18, fontWeight: FontWeight.w600, letterSpacing: -0.2),
+      titleMedium: base.titleMedium?.copyWith(fontSize: 15, fontWeight: FontWeight.w500, letterSpacing: -0.1),
+      titleSmall: base.titleSmall?.copyWith(fontSize: 13, fontWeight: FontWeight.w600, letterSpacing: 0.2),
+      bodyLarge: base.bodyLarge?.copyWith(fontSize: 15, fontWeight: FontWeight.w400, letterSpacing: 0.1),
+      bodyMedium: base.bodyMedium?.copyWith(fontSize: 13, fontWeight: FontWeight.w400, letterSpacing: 0.1),
+      labelLarge: base.labelLarge?.copyWith(fontSize: 13, fontWeight: FontWeight.w600, letterSpacing: 0.3),
+      labelSmall: base.labelSmall?.copyWith(fontSize: 10, fontWeight: FontWeight.w600, letterSpacing: 0.3),
+    );
+  }
 
   static ThemeData dark() {
+    final textTheme = _textTheme();
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
@@ -23,7 +40,7 @@ class TorStreamTheme {
         primary: seedColor,
       ),
       scaffoldBackgroundColor: surfaceDark,
-      fontFamily: 'Roboto',
+      textTheme: textTheme,
 
       appBarTheme: const AppBarTheme(
         backgroundColor: surfaceDark,
@@ -143,17 +160,6 @@ class TorStreamTheme {
         ),
       ),
 
-      textTheme: const TextTheme(
-        headlineLarge: TextStyle(fontSize: 28, fontWeight: FontWeight.w700, letterSpacing: -0.5),
-        headlineMedium: TextStyle(fontSize: 22, fontWeight: FontWeight.w600, letterSpacing: -0.3),
-        titleLarge: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, letterSpacing: -0.2),
-        titleMedium: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, letterSpacing: -0.1),
-        titleSmall: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, letterSpacing: 0.2),
-        bodyLarge: TextStyle(fontSize: 15, fontWeight: FontWeight.w400, letterSpacing: 0.1),
-        bodyMedium: TextStyle(fontSize: 13, fontWeight: FontWeight.w400, letterSpacing: 0.1),
-        labelLarge: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, letterSpacing: 0.3),
-        labelSmall: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, letterSpacing: 0.3),
-      ),
     );
   }
 }

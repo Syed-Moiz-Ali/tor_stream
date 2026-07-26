@@ -1,10 +1,9 @@
 import 'package:go_router/go_router.dart';
 import '../features/home/presentation/home_screen.dart';
 import '../features/player/presentation/player_screen.dart';
-import '../features/add_torrent/presentation/add_torrent_screen.dart';
 import '../features/settings/presentation/settings_screen.dart';
-
 import '../features/history/presentation/history_screen.dart';
+import '../features/library/presentation/library_screen.dart';
 
 final goRouter = GoRouter(
   initialLocation: '/',
@@ -13,6 +12,11 @@ final goRouter = GoRouter(
       path: '/',
       name: 'home',
       builder: (_, __) => const HomeScreen(),
+    ),
+    GoRoute(
+      path: '/library',
+      name: 'library',
+      builder: (_, __) => const LibraryScreen(),
     ),
     GoRoute(
       path: '/history',
@@ -30,11 +34,6 @@ final goRouter = GoRouter(
             ? Uri.decodeQueryComponent(state.uri.queryParameters['magnet']!)
             : null,
       ),
-    ),
-    GoRoute(
-      path: '/add-torrent',
-      name: 'addTorrent',
-      builder: (_, __) => const AddTorrentScreen(),
     ),
     GoRoute(
       path: '/settings',

@@ -151,6 +151,21 @@ pub async fn scan_torrent(
     Ok(FrbTorrentMedia::from(media))
 }
 
+/// Scan a torrent that is already loaded in the engine — auto-populates file entries.
+pub async fn scan_active_torrent(torrent_id: u64, base_dir: Option<String>) -> anyhow::Result<FrbTorrentMedia> {
+    use torrent_engine::bridge as engine;
+
+    let files = engine::list_torrent_files(torrent_id).await?;
+    let entries: Vec<RawFileEntry> = files.into_iter().map(|f| RawFileEntry {
+        index: f.file_index,
+        path: f.path,
+        size: f.size,
+    }).collect();
+
+    let media = meta_engine::scan_torrent(torrent_id, entries, base_dir)?;
+    Ok(FrbTorrentMedia::from(media))
+}
+
 pub async fn get_media(torrent_id: u64) -> anyhow::Result<FrbTorrentMedia> {
     let media = meta_engine::get_media(torrent_id)?;
     Ok(FrbTorrentMedia::from(media))
@@ -161,17 +176,29 @@ pub async fn get_primary_video(torrent_id: u64) -> anyhow::Result<Option<FrbMedi
     Ok(video.map(FrbMediaFile::from))
 }
 
+/// Ensure the torrent is scanned (metadata cached), auto-scanning if needed.
+async fn ensure_scanned(torrent_id: u64) -> anyhow::Result<()> {
+    if meta_engine::get_media(torrent_id).is_ok() {
+        return Ok(());
+    }
+    scan_active_torrent(torrent_id, None).await?;
+    Ok(())
+}
+
 pub async fn get_subtitles(torrent_id: u64) -> anyhow::Result<Vec<FrbSubtitleTrack>> {
+    ensure_scanned(torrent_id).await?;
     let subs = meta_engine::get_subtitles(torrent_id)?;
     Ok(subs.into_iter().map(FrbSubtitleTrack::from).collect())
 }
 
 pub async fn get_audio_tracks(torrent_id: u64) -> anyhow::Result<Vec<FrbAudioTrack>> {
+    ensure_scanned(torrent_id).await?;
     let audio = meta_engine::get_audio_tracks(torrent_id)?;
     Ok(audio.into_iter().map(FrbAudioTrack::from).collect())
 }
 
 pub async fn get_artwork(torrent_id: u64) -> anyhow::Result<Vec<FrbArtwork>> {
+    ensure_scanned(torrent_id).await?;
     let art = meta_engine::get_artwork(torrent_id)?;
     Ok(art.into_iter().map(FrbArtwork::from).collect())
 }

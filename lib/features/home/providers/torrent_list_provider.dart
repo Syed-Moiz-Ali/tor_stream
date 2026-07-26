@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../bridge/bridge.dart';
 import '../../../shared/providers/rust_bridge_provider.dart';
 import '../../../shared/models/torrent_state.dart';
+import '../../../shared/services/foreground_service.dart';
 
 final torrentEventsStreamProvider = StreamProvider<FrbEngineEvent>((ref) async* {
   await ref.watch(rustBridgeInitProvider.future);
@@ -19,6 +21,7 @@ class TorrentListNotifier extends StateNotifier<AsyncValue<List<TorrentState>>> 
   final Ref ref;
   StreamSubscription<FrbEngineEvent>? _subscription;
   Timer? _timer;
+  bool _refreshPending = false;
 
   Future<void> _init() async {
     try {
@@ -27,19 +30,22 @@ class TorrentListNotifier extends StateNotifier<AsyncValue<List<TorrentState>>> 
 
     await refresh();
 
-    _timer = Timer.periodic(const Duration(seconds: 1), (_) => refresh());
+    _timer = Timer.periodic(const Duration(seconds: 3), (_) => Future.microtask(() => refresh()));
 
     try {
       _subscription = subscribeTorrentEvents().listen((event) {
         event.when(
-          sessionStarted: () => refresh(),
-          sessionStopped: () => refresh(),
-          torrentAdded: (id, name, totalBytes) => refresh(),
-          metadataReceived: (id, name, totalBytes) => refresh(),
-          torrentRemoved: (id) => refresh(),
-          downloadStarted: (id) => refresh(),
-          downloadPaused: (id) => refresh(),
-          downloadFinished: (id) => refresh(),
+          sessionStarted: () => _scheduleRefresh(),
+          sessionStopped: () => _scheduleRefresh(),
+          torrentAdded: (id, name, totalBytes) => _scheduleRefresh(),
+          metadataReceived: (id, name, totalBytes) => _scheduleRefresh(),
+          torrentRemoved: (id) => _scheduleRefresh(),
+          downloadStarted: (id) => _scheduleRefresh(),
+          downloadPaused: (id) => _scheduleRefresh(),
+          downloadFinished: (id) {
+            _scheduleRefresh();
+            _checkDeleteAfterWatching(id);
+          },
           progressUpdate: (id, info) {
             final streamOnlyIds = ref.read(streamOnlyTorrentIdsProvider);
             if (streamOnlyIds.contains(id)) {
@@ -73,6 +79,26 @@ class TorrentListNotifier extends StateNotifier<AsyncValue<List<TorrentState>>> 
     } catch (_) {}
   }
 
+  Future<void> _checkDeleteAfterWatching(BigInt id) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (prefs.getBool('delete_after_watching') == true) {
+        await removeTorrent(id: id, deleteFiles: true);
+        _scheduleRefresh();
+      }
+    } catch (_) {}
+  }
+
+  /// Throttled refresh — debounces rapid event bursts.
+  void _scheduleRefresh() {
+    if (_refreshPending) return;
+    _refreshPending = true;
+    Future.delayed(const Duration(milliseconds: 500), () {
+      _refreshPending = false;
+      refresh();
+    });
+  }
+
   Future<void> refresh() async {
     try {
       final infos = await getAllTorrents();
@@ -82,6 +108,11 @@ class TorrentListNotifier extends StateNotifier<AsyncValue<List<TorrentState>>> 
           .map((info) => TorrentState.fromFrb(info))
           .toList();
       state = AsyncValue.data(list);
+
+      final activeCount = infos.where((t) =>
+          t.status == FrbTorrentStatus.downloading ||
+          t.status == FrbTorrentStatus.seeding).length;
+      ref.read(activeTorrentCountProvider.notifier).state = activeCount;
     } catch (_) {
       state = AsyncValue.data(state.value ?? const []);
     }

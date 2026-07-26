@@ -1,10 +1,26 @@
-> git push origin main:main
-remote: error: Trace: 34b9ba9da851063ea57f9f271db55005d287bb310646da24ffba78ba0d54335c
-remote: error: See https://gh.io/lfs for more information.
-remote: error: File android/app/src/main/jniLibs/armeabi-v7a/libtor_stream.so is 242.16 MB; this exceeds GitHub's file size limit of 100.00 MB
-remote: error: File android/app/src/main/jniLibs/x86_64/libtor_stream.so is 266.37 MB; this exceeds GitHub's file size limit of 100.00 MB
-remote: error: File android/app/src/main/jniLibs/arm64-v8a/libtor_stream.so is 266.47 MB; this exceeds GitHub's file size limit of 100.00 MB
-remote: error: GH001: Large files detected. You may want to try Git Large File Storage - https://git-lfs.github.com.
-To https://github.com/Syed-Moiz-Ali/tor_stream.git
- ! [remote rejected] main -> main (pre-receive hook declined)
-error: failed to push some refs to 'https://github.com/Syed-Moiz-Ali/tor_stream.git'
+
+════════ Exception caught by scheduler library ═════════════════════════════════
+The following assertion was thrown during a scheduler callback:
+No MaterialLocalizations found.
+TorStreamApp widgets require MaterialLocalizations to be provided by a Localizations widget ancestor.
+The material library uses Localizations to generate messages, labels, and abbreviations.
+To introduce a MaterialLocalizations, either use a MaterialApp at the root of your application to include them automatically, or add a Localization widget with a MaterialLocalizations delegate.
+The specific widget that could not find a MaterialLocalizations ancestor was: TorStreamApp
+    state: _TorStreamAppState#0dbd0
+The ancestors of this widget were:
+    : ProviderScope
+        state: ProviderScopeState#054d9
+    ...
+
+When the exception was thrown, this was the stack:
+#0      debugCheckHasMaterialLocalizations.<anonymous closure> (package:flutter/src/material/debug.dart:97:7)
+#1      debugCheckHasMaterialLocalizations (package:flutter/src/material/debug.dart:117:4)
+#2      showDialog (package:flutter/src/material/dialog.dart:1503:10)
+#3      _TorStreamAppState._showBatteryOptimizationDialog.<anonymous closure> (package:tor_stream/main.dart:97:7)
+#4      SchedulerBinding._invokeFrameCallback (package:flutter/src/scheduler/binding.dart:1434:15)
+#5      SchedulerBinding.handleDrawFrame (package:flutter/src/scheduler/binding.dart:1361:11)
+#6      SchedulerBinding._handleDrawFrame (package:flutter/src/scheduler/binding.dart:1200:5)
+#7      _invoke (dart:ui/hooks.dart:330:13)
+#8      PlatformDispatcher._drawFrame (dart:ui/platform_dispatcher.dart:444:5)
+#9      _drawFrame (dart:ui/hooks.dart:302:31)
+════════════════════════════════════════════════════════════════════════════════

@@ -22,6 +22,11 @@ class TorrentService : Service() {
         private const val WAKE_LOCK_TAG = "TorStream:WakeLock"
         private const val WIFI_LOCK_TAG = "TorStream:WifiLock"
 
+        private var currentTitle: String = "TorStream"
+        private var currentProgress: Double = 0.0
+        private var currentSpeed: String = ""
+        private var currentActiveCount: Int = 0
+
         fun start(context: Context) {
             val intent = Intent(context, TorrentService::class.java)
             context.startForegroundService(intent)
@@ -30,6 +35,63 @@ class TorrentService : Service() {
         fun stop(context: Context) {
             val intent = Intent(context, TorrentService::class.java)
             context.stopService(intent)
+        }
+
+        fun updateNotification(context: Context, title: String, progress: Double, speed: String, activeCount: Int) {
+            currentTitle = title
+            currentProgress = progress
+            currentSpeed = speed
+            currentActiveCount = activeCount
+
+            val notification = buildNotification(context)
+            val manager = context.getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+            manager.notify(NOTIFICATION_ID, notification)
+        }
+
+        private fun buildNotification(context: Context): Notification {
+            val pendingIntent = PendingIntent.getActivity(
+                context,
+                0,
+                Intent(context, MainActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
+                },
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+
+            val pauseAllIntent = PendingIntent.getBroadcast(
+                context,
+                1,
+                Intent("com.example.tor_stream.PAUSE_ALL").apply {
+                    `package` = context.packageName
+                },
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+
+            val progressMax = 1000
+            val progressInt = (currentProgress * progressMax).toInt().coerceIn(0, progressMax)
+
+            val text = if (currentActiveCount > 0) {
+                "${currentActiveCount} active · ${currentSpeed} · ${(currentProgress * 100).toInt()}%"
+            } else {
+                "Downloading torrents in background"
+            }
+
+            return NotificationCompat.Builder(context, CHANNEL_ID)
+                .setContentTitle(currentTitle)
+                .setContentText(text)
+                .setSubText(if (currentSpeed.isNotEmpty()) currentSpeed else null)
+                .setSmallIcon(android.R.drawable.stat_sys_download)
+                .setContentIntent(pendingIntent)
+                .setOngoing(true)
+                .setSilent(true)
+                .setPriority(NotificationCompat.PRIORITY_LOW)
+                .setProgress(progressMax, progressInt, false)
+                .addAction(
+                    android.R.drawable.ic_media_pause,
+                    "Pause All",
+                    pauseAllIntent
+                )
+                .build()
         }
     }
 
@@ -45,7 +107,7 @@ class TorrentService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        val notification = buildNotification()
+        val notification = buildNotification(this)
         startForeground(NOTIFICATION_ID, notification)
         Log.i(TAG, "TorrentService foreground started")
         return START_STICKY
@@ -79,34 +141,13 @@ class TorrentService : Service() {
         manager.createNotificationChannel(channel)
     }
 
-    private fun buildNotification(): Notification {
-        val pendingIntent = PendingIntent.getActivity(
-            this,
-            0,
-            Intent(this, MainActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
-            },
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-
-        return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("TorStream")
-            .setContentText("Downloading torrents in background")
-            .setSmallIcon(android.R.drawable.stat_sys_download)
-            .setContentIntent(pendingIntent)
-            .setOngoing(true)
-            .setSilent(true)
-            .setPriority(NotificationCompat.PRIORITY_LOW)
-            .build()
-    }
-
     private fun acquireWakeLock() {
         val powerManager = getSystemService(POWER_SERVICE) as PowerManager
         wakeLock = powerManager.newWakeLock(
             PowerManager.PARTIAL_WAKE_LOCK,
             WAKE_LOCK_TAG
         ).apply {
-            acquire(10 * 60 * 1000L)
+            acquire()
         }
     }
 

@@ -178,6 +178,29 @@ impl TorrentHandle {
         }).ok().flatten()
     }
 
+    /// List all file entries without auto-selection logic.
+    pub fn list_file_entries(&self) -> Vec<crate::models::TorrentFileInfo> {
+        self.inner.with_metadata(|m| {
+            let file_infos = m.file_infos.as_slice();
+            let lengths = m.lengths();
+            file_infos.iter().enumerate().map(|(idx, f)| {
+                let start_piece = f.piece_range.start;
+                let end_piece = f.piece_range.end;
+                crate::models::TorrentFileInfo {
+                    torrent_id: self.id,
+                    file_index: idx as u32,
+                    path: f.relative_filename.to_string_lossy().to_string(),
+                    size: f.len,
+                    offset_in_torrent: f.offset_in_torrent,
+                    piece_length: lengths.default_piece_length(),
+                    total_pieces: lengths.total_pieces(),
+                    start_piece,
+                    num_pieces: end_piece.saturating_sub(start_piece),
+                }
+            }).collect()
+        }).ok().unwrap_or_default()
+    }
+
     /// Build a [`PeerStats`] snapshot.
     pub fn peer_stats(&self) -> PeerStats {
         let stats = self.inner.stats();

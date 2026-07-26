@@ -206,6 +206,13 @@ pub fn subscribe_events() -> tokio::sync::broadcast::Receiver<EngineEvent> {
     }
 }
 
+/// List all file entries for a torrent.
+pub async fn list_torrent_files(id: u64) -> anyhow::Result<Vec<crate::models::TorrentFileInfo>> {
+    let engine = get_engine().context("Engine not initialised")?;
+    let handle = engine.session.get(id)?;
+    Ok(handle.list_file_entries())
+}
+
 /// Open an async file stream for reading torrent media data with sequential piece prioritization.
 pub async fn open_stream(id: u64, file_index: u32) -> anyhow::Result<Box<dyn crate::session::handle::TorrentStreamReader>> {
     let engine = get_engine().context("Engine not initialised")?;

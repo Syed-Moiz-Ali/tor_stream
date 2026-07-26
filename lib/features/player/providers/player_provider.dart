@@ -44,9 +44,17 @@ class PlayerNotifier extends StateNotifier<StreamState> {
   PlayerNotifier(this.torrentId, this.fileIndex) : super(const StreamState());
 
   Future<void> init() async {
+    _disposed = false;
+    _positionTimer?.cancel();
+    _positionTimer = null;
+    if (state.streamUrl != null) return; // Already initialized
     try {
       try {
         await resumeTorrent(id: torrentId);
+      } catch (_) {}
+      if (_disposed) return;
+      try {
+        await stopStream(torrentId: torrentId, fileIndex: fileIndex);
       } catch (_) {}
       if (_disposed) return;
       await startStream(torrentId: torrentId, fileIndex: fileIndex);
@@ -137,7 +145,7 @@ class PlayerNotifier extends StateNotifier<StreamState> {
 
   void _startPositionPolling() {
     _positionTimer?.cancel();
-    _positionTimer = Timer.periodic(const Duration(seconds: 2), (_) async {
+    _positionTimer = Timer.periodic(const Duration(seconds: 3), (_) async {
       if (_disposed) {
         _positionTimer?.cancel();
         return;

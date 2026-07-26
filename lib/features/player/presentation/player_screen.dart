@@ -8,9 +8,14 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:video_player/video_player.dart';
 import 'package:screen_brightness/screen_brightness.dart';
 import 'package:volume_controller/volume_controller.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 // Your backend imports
+import '../../../shared/torrent_box.dart';
 import '../providers/player_provider.dart';
+import '../../../bridge/bridge.dart';
+import '../../../player/tor_stream_enhancement.dart';
+import '../../../app/theme.dart';
 
 // ── Ultra-Premium Design Tokens ──
 const Color _ytRed = Color(0xFFFF0000);
@@ -67,6 +72,12 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
 
   bool _showHud = false;
   Timer? _hudTimer;
+
+  // ── Subtitle & Enhancement State ──
+  List<FrbSubtitleTrack> _subtitleTracks = [];
+  int? _activeSubtitleIndex;
+  double _subtitleDelayMs = 0;
+  String _streamTitle = 'Video';
 
   // ── YouTube Double Tap & Long Press ──
   bool _showLeftRipple = false;
@@ -134,14 +145,55 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     _ctrl?.dispose();
     _fadeCtrl.dispose();
 
+    _savePlaybackPosition();
+    _deleteIfWatched();
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     WakelockPlus.disable();
     super.dispose();
   }
 
+  Future<void> _fetchSubtitles() async {
+    try {
+      final tracks = await getSubtitles(torrentId: widget.torrentId);
+      if (tracks.isNotEmpty && mounted) {
+        setState(() => _subtitleTracks = tracks);
+      }
+    } catch (_) {}
+  }
+
   void _onVideoTick() {
     if (mounted) setState(() {});
+    _savePlaybackPosition();
+  }
+
+  void _savePlaybackPosition() {
+    if (!widget.isStreamOnly || widget.magnetUri == null || _ctrl == null)
+      return;
+    if (!_ctrl!.value.isInitialized) return;
+    final pos = _ctrl!.value.position.inMilliseconds;
+    final dur = _ctrl!.value.duration.inMilliseconds;
+    if (pos < 3000) return;
+    TorrentBox.instance.savePosition(
+      widget.magnetUri!,
+      positionMs: pos,
+      durationMs: dur,
+      title: _streamTitle,
+    );
+  }
+
+  Future<void> _deleteIfWatched() async {
+    if (widget.isStreamOnly) return;
+    if (_ctrl == null || !_ctrl!.value.isInitialized) return;
+    final pos = _ctrl!.value.position.inMilliseconds;
+    final dur = _ctrl!.value.duration.inMilliseconds;
+    if (dur <= 0 || pos < dur * 0.9) return;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (prefs.getBool('delete_after_watching') == true) {
+        await removeTorrent(id: widget.torrentId, deleteFiles: true);
+      }
+    } catch (_) {}
   }
 
   void _initVideo(String url) async {
@@ -375,7 +427,9 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     );
 
     if (st.streamUrl != null && _ctrl == null && !_isInit) {
+      if (st.fileName != null) _streamTitle = st.fileName!;
       _initVideo(st.streamUrl!);
+      _fetchSubtitles();
     }
 
     final isReady = _ctrl != null && _ctrl!.value.isInitialized;
@@ -594,7 +648,21 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
                 color: _pureWhite,
                 size: 24,
               ),
-              onPressed: () {}, // Attach your subtitle sheet logic here
+              onPressed: _showSubtitleSheet,
+            ),
+            IconButton(
+              icon: const Icon(
+                Icons.picture_in_picture_rounded,
+                color: _pureWhite,
+                size: 24,
+              ),
+              onPressed: () async {
+                try {
+                  await SystemChrome.setEnabledSystemUIMode(
+                    SystemUiMode.immersiveSticky,
+                  );
+                } catch (_) {}
+              },
             ),
             IconButton(
               icon: const Icon(
@@ -931,6 +999,201 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
         ),
       ),
     );
+  }
+
+  void _showSubtitleSheet() {
+    _hideTimer?.cancel();
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF212121),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (_) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              margin: const EdgeInsets.symmetric(vertical: 12),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: _white30,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                children: [
+                  Text(
+                    'Subtitles',
+                    style: const TextStyle(
+                      color: _pureWhite,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const Spacer(),
+                  if (_activeSubtitleIndex != null)
+                    GestureDetector(
+                      onTap: () {
+                        setState(() => _activeSubtitleIndex = null);
+                        TorStreamEnhancement.loadSubtitles(
+                          FrbSubtitleConfig(
+                            delayMs: 0,
+                            fontSizePt: 14,
+                            colorHex: '#FFFFFF',
+                            backgroundColorHex: '#000000',
+                            outlineColorHex: '#000000',
+                            shadowEnabled: true,
+                            encoding: 'UTF-8',
+                          ),
+                        );
+                        Navigator.pop(context);
+                      },
+                      child: Text(
+                        'Off',
+                        style: TextStyle(color: _white70, fontSize: 13),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            ListTile(
+              leading: Icon(
+                Icons.closed_caption_off_rounded,
+                color: _activeSubtitleIndex == null
+                    ? TorStreamTheme.seedColor
+                    : _white70,
+                size: 22,
+              ),
+              title: Text(
+                'None',
+                style: TextStyle(
+                  color: _activeSubtitleIndex == null ? _pureWhite : _white70,
+                  fontSize: 14,
+                ),
+              ),
+              selected: _activeSubtitleIndex == null,
+              onTap: () {
+                setState(() => _activeSubtitleIndex = null);
+                Navigator.pop(context);
+              },
+            ),
+            ..._subtitleTracks.asMap().entries.map((entry) {
+              final idx = entry.key;
+              final track = entry.value;
+              final isActive = _activeSubtitleIndex == idx;
+              return ListTile(
+                leading: Icon(
+                  Icons.subtitles_rounded,
+                  color: isActive ? TorStreamTheme.seedColor : _white70,
+                  size: 22,
+                ),
+                title: Text(
+                  track.language.isNotEmpty
+                      ? track.language
+                      : 'Track ${idx + 1}',
+                  style: TextStyle(
+                    color: isActive ? _pureWhite : _white70,
+                    fontSize: 14,
+                  ),
+                ),
+                subtitle: track.title.isNotEmpty
+                    ? Text(
+                        track.title,
+                        style: TextStyle(color: _white70, fontSize: 11),
+                      )
+                    : null,
+                trailing: isActive
+                    ? Icon(
+                        Icons.check,
+                        color: TorStreamTheme.seedColor,
+                        size: 20,
+                      )
+                    : null,
+                onTap: () {
+                  setState(() => _activeSubtitleIndex = idx);
+                  TorStreamEnhancement.loadSubtitles(
+                    FrbSubtitleConfig(
+                      delayMs: _subtitleDelayMs.round(),
+                      fontSizePt: 14,
+                      colorHex: '#FFFFFF',
+                      backgroundColorHex: '#000000',
+                      outlineColorHex: '#000000',
+                      shadowEnabled: true,
+                      encoding: 'UTF-8',
+                    ),
+                  );
+                  Navigator.pop(context);
+                },
+              );
+            }),
+            if (_activeSubtitleIndex != null) ...[
+              const Divider(
+                color: _white30,
+                height: 1,
+                indent: 16,
+                endIndent: 16,
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                child: Row(
+                  children: [
+                    Text(
+                      'Delay',
+                      style: TextStyle(color: _white70, fontSize: 13),
+                    ),
+                    const Spacer(),
+                    IconButton(
+                      icon: const Icon(
+                        Icons.remove_circle_outline,
+                        color: _pureWhite,
+                        size: 20,
+                      ),
+                      onPressed: () {
+                        setState(
+                          () => _subtitleDelayMs = (_subtitleDelayMs - 100)
+                              .clamp(-10000, 10000),
+                        );
+                        TorStreamEnhancement.changeSubtitle(
+                          _subtitleDelayMs.round(),
+                        );
+                      },
+                    ),
+                    Text(
+                      '${_subtitleDelayMs.round()} ms',
+                      style: const TextStyle(color: _pureWhite, fontSize: 13),
+                    ),
+                    IconButton(
+                      icon: const Icon(
+                        Icons.add_circle_outline,
+                        color: _pureWhite,
+                        size: 20,
+                      ),
+                      onPressed: () {
+                        setState(
+                          () => _subtitleDelayMs = (_subtitleDelayMs + 100)
+                              .clamp(-10000, 10000),
+                        );
+                        TorStreamEnhancement.changeSubtitle(
+                          _subtitleDelayMs.round(),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    ).then((_) => _wakeUI());
   }
 
   void _showYouTubeSettingsSheet() {
