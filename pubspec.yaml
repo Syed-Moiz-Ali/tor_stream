@@ -33,6 +33,8 @@ dependencies:
   cupertino_icons: ^1.0.8
   video_player: ^2.9.2
   wakelock_plus: ^1.4.0
+  screen_brightness: ^1.0.0       # Brightness gesture control
+  volume_controller: ^2.0.7       # System volume gesture control
 
   # ── Navigation & State ────────────────────────────────────────────────────
   flutter_riverpod: ^2.6.1
@@ -48,6 +50,7 @@ dependencies:
   # ── Platform ──────────────────────────────────────────────────────────────
   path_provider: ^2.1.0
   hive_flutter: ^1.1.0
+  shared_preferences: ^2.5.3
 
 dev_dependencies:
   flutter_test:

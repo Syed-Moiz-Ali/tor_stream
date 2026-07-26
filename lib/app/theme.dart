@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 
 class TorStreamTheme {
-  static const Color seedColor = Color(0xFF7C6EF8);
-  static const Color surfaceDark = Color(0xFF0A0A12);
-  static const Color surfaceCard = Color(0xFF12121E);
-  static const Color surfaceElevated = Color(0xFF1A1A2E);
-  static const Color accentGreen = Color(0xFF2ECC71);
-  static const Color accentAmber = Color(0xFFFFB347);
-  static const Color accentRed = Color(0xFFE74C3C);
-  static const Color textSecondary = Color(0xFF8B8B9E);
-  static const Color dividerColor = Color(0xFF1E1E30);
+  // ── 2026 Modern Theme Palette ──────────────────────────────────────────────
+  static const Color seedColor       = Color(0xFF6366F1); // Indigo Primary
+  static const Color surfaceDark     = Color(0xFF000000); // OLED Deep Black
+  static const Color surfaceCard     = Color(0xFF0D0D12); // Translucent Dark Surface
+  static const Color surfaceElevated = Color(0xFF14141E); // Elevated Translucent Layer
+  static const Color accentGreen     = Color(0xFF10B981); // Emerald Green
+  static const Color accentAmber     = Color(0xFFF59E0B); // Amber
+  static const Color accentRed       = Color(0xFFEF4444); // Rose Red
+  static const Color textSecondary   = Color(0xFF94A3B8); // Muted Slate Gray
+  static const Color dividerColor   = Color(0x1AFFFFFF); // Ultra-thin Divider (10% White)
 
   static ThemeData dark() {
     return ThemeData(
@@ -27,12 +28,12 @@ class TorStreamTheme {
       appBarTheme: const AppBarTheme(
         backgroundColor: surfaceDark,
         elevation: 0,
-        centerTitle: true,
+        centerTitle: false,
         scrolledUnderElevation: 0,
         titleTextStyle: TextStyle(
           color: Colors.white,
           fontSize: 18,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w700,
           letterSpacing: -0.3,
         ),
       ),
@@ -41,11 +42,11 @@ class TorStreamTheme {
         color: surfaceCard,
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(16),
           side: const BorderSide(color: dividerColor, width: 0.5),
         ),
         clipBehavior: Clip.antiAlias,
-        margin: const EdgeInsets.symmetric(vertical: 5),
+        margin: const EdgeInsets.symmetric(vertical: 4),
       ),
 
       navigationBarTheme: NavigationBarThemeData(
@@ -63,6 +64,7 @@ class TorStreamTheme {
         unselectedLabelColor: textSecondary,
         labelStyle: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
         unselectedLabelStyle: TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+        dividerColor: Colors.transparent,
       ),
 
       filledButtonTheme: FilledButtonThemeData(
@@ -70,17 +72,17 @@ class TorStreamTheme {
           backgroundColor: seedColor,
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
         ),
       ),
 
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: Colors.white,
-          side: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
+          side: BorderSide(color: Colors.white.withValues(alpha: 0.15)),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
           textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
         ),
       ),
@@ -93,30 +95,30 @@ class TorStreamTheme {
       ),
 
       chipTheme: ChipThemeData(
-        backgroundColor: seedColor.withValues(alpha: 0.1),
+        backgroundColor: seedColor.withValues(alpha: 0.12),
         labelStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
         side: BorderSide.none,
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
 
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: surfaceElevated,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
           borderSide: const BorderSide(color: dividerColor),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
           borderSide: const BorderSide(color: dividerColor),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
           borderSide: const BorderSide(color: seedColor, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
           borderSide: const BorderSide(color: accentRed),
         ),
         hintStyle: TextStyle(color: textSecondary.withValues(alpha: 0.6)),
@@ -127,12 +129,6 @@ class TorStreamTheme {
         color: dividerColor,
         thickness: 0.5,
         space: 0,
-      ),
-
-      snackBarTheme: SnackBarThemeData(
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       ),
 
       dialogTheme: DialogThemeData(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../app/theme.dart';
 import '../providers/settings_provider.dart';
 
@@ -12,19 +13,26 @@ class SettingsScreen extends ConsumerWidget {
     final storageAsync = ref.watch(storageReportProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Settings')),
+      backgroundColor: TorStreamTheme.surfaceDark,
+      appBar: AppBar(
+        title: const Text('Settings'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded, size: 20),
+          onPressed: () => context.pop(),
+        ),
+      ),
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         children: [
-          _sectionHeader('Engine Status'),
+          _sectionHeader('ENGINE STATUS'),
           healthAsync.when(
             loading: () => const Padding(
               padding: EdgeInsets.all(24),
-              child: Center(child: SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2.5))),
+              child: Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2.0, color: TorStreamTheme.seedColor))),
             ),
-            error: (e, _) => _InfoTile(
+            error: (e, _) => const _InfoTile(
               title: 'Health Check', value: 'Failed',
-              icon: Icons.error, iconColor: TorStreamTheme.accentRed,
+              icon: Icons.error_outline_rounded, iconColor: TorStreamTheme.accentRed,
             ),
             data: (health) => Column(
               children: [
@@ -46,19 +54,19 @@ class SettingsScreen extends ConsumerWidget {
               ],
             ),
           ),
-          const SizedBox(height: 20),
-          _sectionHeader('Storage'),
+          const SizedBox(height: 16),
+          _sectionHeader('STORAGE'),
           storageAsync.when(
             loading: () => const _InfoTile(title: 'Checking...', value: ''),
-            error: (e, _) => _InfoTile(title: 'Storage Check', value: 'Error', icon: Icons.error, iconColor: TorStreamTheme.accentRed),
+            error: (e, _) => const _InfoTile(title: 'Storage Check', value: 'Error', icon: Icons.error_outline_rounded, iconColor: TorStreamTheme.accentRed),
             data: (report) => _InfoTile(title: 'Total Space', value: _formatBytes(report?.totalSpaceBytes ?? 0),
               icon: Icons.folder_rounded),
           ),
-          const SizedBox(height: 20),
-          _sectionHeader('About'),
-          _InfoTile(title: 'Version', value: '1.0.0', icon: Icons.info_outline_rounded),
-          _InfoTile(title: 'Engine', value: 'Rust + librqbit', icon: Icons.settings_rounded),
-          const SizedBox(height: 32),
+          const SizedBox(height: 16),
+          _sectionHeader('ABOUT'),
+          const _InfoTile(title: 'Version', value: '1.0.0', icon: Icons.info_outline_rounded),
+          const _InfoTile(title: 'Engine', value: 'Rust + librqbit', icon: Icons.settings_rounded),
+          const SizedBox(height: 28),
         ],
       ),
     );
@@ -66,10 +74,10 @@ class SettingsScreen extends ConsumerWidget {
 
   Widget _sectionHeader(String title) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8, top: 8),
+      padding: const EdgeInsets.only(bottom: 6, top: 10, left: 4),
       child: Text(title,
         style: TextStyle(
-          fontSize: 12,
+          fontSize: 11,
           fontWeight: FontWeight.w700,
           letterSpacing: 0.8,
           color: TorStreamTheme.textSecondary.withValues(alpha: 0.8),
@@ -99,28 +107,28 @@ class _InfoTile extends StatelessWidget {
     final color = iconColor ?? TorStreamTheme.seedColor;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 3),
+      padding: const EdgeInsets.symmetric(vertical: 2.5),
       child: Card(
         margin: EdgeInsets.zero,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
           child: Row(
             children: [
               if (icon != null) ...[
                 Container(
-                  width: 34, height: 34,
+                  width: 32, height: 32,
                   decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.1),
+                    color: color.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(icon, color: color, size: 18),
+                  child: Icon(icon, color: color, size: 16),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 10),
               ],
               Expanded(
-                child: Text(title, style: TextStyle(fontSize: 14, color: cs.onSurface.withValues(alpha: 0.85))),
+                child: Text(title, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: cs.onSurface.withValues(alpha: 0.85))),
               ),
-              Text(value, style: TextStyle(fontSize: 13, color: cs.onSurface.withValues(alpha: 0.5))),
+              Text(value, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: cs.onSurface.withValues(alpha: 0.5))),
             ],
           ),
         ),

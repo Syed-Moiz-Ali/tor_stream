@@ -30,51 +30,66 @@ class _AddTorrentScreenState extends ConsumerState<AddTorrentScreen> {
     final cs = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Add Torrent')),
+      backgroundColor: TorStreamTheme.surfaceDark,
+      appBar: AppBar(
+        title: const Text('Add Torrent'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded, size: 20),
+          onPressed: () => context.pop(),
+        ),
+      ),
       body: ListView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         children: [
-          const SizedBox(height: 8),
+          const SizedBox(height: 4),
           SegmentedButton<bool>(
             segments: const [
               ButtonSegment(
                 value: true,
-                label: Text('Magnet'),
-                icon: Icon(Icons.link_rounded, size: 18),
+                label: Text('Magnet Link', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                icon: Icon(Icons.link_rounded, size: 16),
               ),
               ButtonSegment(
                 value: false,
-                label: Text('File'),
-                icon: Icon(Icons.file_present_rounded, size: 18),
+                label: Text('Torrent File', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                icon: Icon(Icons.file_present_rounded, size: 16),
               ),
             ],
             selected: {_isMagnetMode},
             onSelectionChanged: (v) => setState(() => _isMagnetMode = v.first),
             style: ButtonStyle(
-              shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+              backgroundColor: WidgetStateProperty.resolveWith((states) {
+                if (states.contains(WidgetState.selected)) {
+                  return TorStreamTheme.seedColor;
+                }
+                return TorStreamTheme.surfaceElevated;
+              }),
+              foregroundColor: const WidgetStatePropertyAll(Colors.white),
+              side: const WidgetStatePropertyAll(BorderSide.none),
+              shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
             ),
           ),
-          const SizedBox(height: 28),
+          const SizedBox(height: 24),
           AnimatedSwitcher(
             duration: const Duration(milliseconds: 200),
             child: _isMagnetMode ? _magnetInput(cs) : _fileInput(cs),
           ),
-          const SizedBox(height: 28),
+          const SizedBox(height: 24),
           if (state.error != null)
             Padding(
               padding: const EdgeInsets.only(bottom: 16),
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 decoration: BoxDecoration(
-                  color: TorStreamTheme.accentRed.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(10),
+                  color: TorStreamTheme.accentRed.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: TorStreamTheme.accentRed.withValues(alpha: 0.2)),
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.error_outline_rounded, size: 18, color: TorStreamTheme.accentRed),
+                    const Icon(Icons.error_outline_rounded, size: 18, color: TorStreamTheme.accentRed),
                     const SizedBox(width: 8),
-                    Expanded(child: Text(state.error!, style: TextStyle(color: TorStreamTheme.accentRed, fontSize: 13))),
+                    Expanded(child: Text(state.error!, style: const TextStyle(color: TorStreamTheme.accentRed, fontSize: 12))),
                   ],
                 ),
               ),
@@ -85,15 +100,15 @@ class _AddTorrentScreenState extends ConsumerState<AddTorrentScreen> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 decoration: BoxDecoration(
-                  color: TorStreamTheme.accentGreen.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(10),
+                  color: TorStreamTheme.accentGreen.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: TorStreamTheme.accentGreen.withValues(alpha: 0.2)),
                 ),
                 child: const Row(
                   children: [
                     Icon(Icons.check_circle_rounded, size: 18, color: TorStreamTheme.accentGreen),
                     SizedBox(width: 8),
-                    Text('Torrent added successfully!', style: TextStyle(color: TorStreamTheme.accentGreen, fontSize: 13)),
+                    Text('Torrent added successfully!', style: TextStyle(color: TorStreamTheme.accentGreen, fontSize: 12)),
                   ],
                 ),
               ),
@@ -102,10 +117,10 @@ class _AddTorrentScreenState extends ConsumerState<AddTorrentScreen> {
             onPressed: state.isLoading ? null : _submit,
             icon: state.isLoading
                 ? const SizedBox(
-                    width: 18, height: 18,
+                    width: 16, height: 16,
                     child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                   )
-                : const Icon(Icons.add_rounded, size: 20),
+                : const Icon(Icons.add_rounded, size: 18),
             label: Text(state.isLoading ? 'Adding...' : 'Add to Library'),
           ),
         ],
@@ -122,10 +137,10 @@ class _AddTorrentScreenState extends ConsumerState<AddTorrentScreen> {
         TextField(
           controller: _magnetController,
           maxLines: 4,
-          style: const TextStyle(fontSize: 13, fontFamily: 'monospace'),
+          style: const TextStyle(fontSize: 12, fontFamily: 'monospace'),
           decoration: InputDecoration(
             hintText: 'magnet:?xt=urn:btih:...',
-            hintStyle: TextStyle(color: TorStreamTheme.textSecondary.withValues(alpha: 0.5), fontFamily: 'monospace', fontSize: 12),
+            hintStyle: TextStyle(color: TorStreamTheme.textSecondary.withValues(alpha: 0.5), fontFamily: 'monospace', fontSize: 11),
           ),
         ),
       ],
@@ -140,18 +155,18 @@ class _AddTorrentScreenState extends ConsumerState<AddTorrentScreen> {
         const SizedBox(height: 8),
         Container(
           width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 32),
+          padding: const EdgeInsets.symmetric(vertical: 28),
           decoration: BoxDecoration(
             color: TorStreamTheme.surfaceElevated,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: TorStreamTheme.dividerColor),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: TorStreamTheme.dividerColor, width: 0.5),
           ),
           child: Column(
             children: [
-              Icon(Icons.upload_file_rounded, size: 32, color: TorStreamTheme.textSecondary.withValues(alpha: 0.5)),
-              const SizedBox(height: 12),
+              Icon(Icons.upload_file_rounded, size: 28, color: TorStreamTheme.textSecondary.withValues(alpha: 0.5)),
+              const SizedBox(height: 10),
               Text('Tap to browse .torrent files',
-                style: TextStyle(fontSize: 13, color: TorStreamTheme.textSecondary.withValues(alpha: 0.7))),
+                style: TextStyle(fontSize: 12, color: TorStreamTheme.textSecondary.withValues(alpha: 0.7))),
             ],
           ),
         ),
@@ -180,10 +195,10 @@ class _AddTorrentScreenState extends ConsumerState<AddTorrentScreen> {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (ctx) => Padding(
-        padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -191,26 +206,26 @@ class _AddTorrentScreenState extends ConsumerState<AddTorrentScreen> {
             Row(
               children: [
                 Container(
-                  width: 40, height: 40,
+                  width: 36, height: 36,
                   decoration: BoxDecoration(
-                    color: TorStreamTheme.accentGreen.withValues(alpha: 0.1),
+                    color: TorStreamTheme.accentGreen.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(Icons.check_circle_rounded, color: TorStreamTheme.accentGreen, size: 22),
+                  child: const Icon(Icons.check_circle_rounded, color: TorStreamTheme.accentGreen, size: 20),
                 ),
-                const SizedBox(width: 12),
-                const Text('Torrent Added', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w600)),
+                const SizedBox(width: 10),
+                const Text('Torrent Added', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
               ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             Padding(
-              padding: const EdgeInsets.only(left: 52),
+              padding: const EdgeInsets.only(left: 46),
               child: Text('Stream now or download in background',
-                style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 14)),
+                style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 13)),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
             FilledButton.icon(
-              icon: const Icon(Icons.play_arrow_rounded, size: 20),
+              icon: const Icon(Icons.play_arrow_rounded, size: 18),
               label: const Text('Stream Now'),
               onPressed: () async {
                 final streamSet = ref.read(streamOnlyTorrentIdsProvider);
@@ -236,9 +251,9 @@ class _AddTorrentScreenState extends ConsumerState<AddTorrentScreen> {
                 router.pushReplacement('/player/$torrentId/0?streamOnly=true&magnet=$encodedMagnet');
               },
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             OutlinedButton.icon(
-              icon: const Icon(Icons.download_rounded, size: 20),
+              icon: const Icon(Icons.download_rounded, size: 18),
               label: const Text('Download in Background'),
               onPressed: () {
                 Navigator.pop(ctx);

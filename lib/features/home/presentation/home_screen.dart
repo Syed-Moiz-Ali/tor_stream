@@ -68,7 +68,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             child: _showSearch
                 ? IconButton(
                     key: const ValueKey('close'),
-                    icon: const Icon(Icons.close_rounded),
+                    icon: const Icon(Icons.close_rounded, size: 20),
                     onPressed: () {
                       setState(() {
                         _showSearch = false;
@@ -80,16 +80,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 : Row(
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.search_rounded),
+                        icon: const Icon(Icons.search_rounded, size: 20),
                         onPressed: () => setState(() => _showSearch = true),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.history_rounded),
+                        icon: const Icon(Icons.history_rounded, size: 20),
                         tooltip: 'Watch History',
                         onPressed: () => context.push('/history'),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.tune_rounded),
+                        icon: const Icon(Icons.tune_rounded, size: 20),
                         tooltip: 'Settings',
                         onPressed: () => context.push('/settings'),
                       ),
@@ -102,11 +102,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 controller: _tabController,
                 tabs: const [
                   Tab(
-                    icon: Icon(Icons.downloading_rounded, size: 18),
+                    icon: Icon(Icons.downloading_rounded, size: 16),
                     text: 'Downloading',
                   ),
                   Tab(
-                    icon: Icon(Icons.check_circle_outline_rounded, size: 18),
+                    icon: Icon(Icons.check_circle_outline_rounded, size: 16),
                     text: 'Downloaded',
                   ),
                 ],
@@ -130,8 +130,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           : FloatingActionButton(
               onPressed: () => context.push('/add-torrent'),
               backgroundColor: TorStreamTheme.seedColor,
-              elevation: 4,
-              child: const Icon(Icons.add_rounded, color: Colors.white),
+              elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              child: const Icon(Icons.add_rounded, color: Colors.white, size: 24),
             ),
     );
   }
@@ -141,17 +142,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     return searchAsync.when(
       loading: () => const Center(
         child: SizedBox(
-          width: 28, height: 28,
-          child: CircularProgressIndicator(strokeWidth: 2.5),
+          width: 24, height: 24,
+          child: CircularProgressIndicator(strokeWidth: 2.0, color: TorStreamTheme.seedColor),
         ),
       ),
       error: (e, _) => Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.error_outline_rounded, size: 40, color: cs.error.withValues(alpha: 0.7)),
+            Icon(Icons.error_outline_rounded, size: 36, color: cs.error.withValues(alpha: 0.7)),
             const SizedBox(height: 12),
-            Text('Search failed', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.6))),
+            Text('Search failed', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.6), fontSize: 13)),
           ],
         ),
       ),
@@ -161,9 +162,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.search_off_rounded, size: 48, color: cs.onSurface.withValues(alpha: 0.15)),
+                Icon(Icons.search_off_rounded, size: 40, color: cs.onSurface.withValues(alpha: 0.15)),
                 const SizedBox(height: 12),
-                Text('No results found', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.5))),
+                Text('No results found', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.5), fontSize: 13)),
               ],
             ),
           );
@@ -182,8 +183,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     return torrentsAsync.when(
       loading: () => const Center(
         child: SizedBox(
-          width: 28, height: 28,
-          child: CircularProgressIndicator(strokeWidth: 2.5),
+          width: 24, height: 24,
+          child: CircularProgressIndicator(strokeWidth: 2.0, color: TorStreamTheme.seedColor),
         ),
       ),
       error: (err, _) => Center(
@@ -192,13 +193,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.error_outline_rounded, size: 44, color: cs.error.withValues(alpha: 0.7)),
-              const SizedBox(height: 16),
+              Icon(Icons.error_outline_rounded, size: 40, color: cs.error.withValues(alpha: 0.7)),
+              const SizedBox(height: 14),
               Text('Failed to load', style: Theme.of(context).textTheme.titleMedium?.copyWith(color: cs.onSurface.withValues(alpha: 0.7))),
               const SizedBox(height: 12),
               FilledButton.icon(
                 onPressed: () => ref.read(torrentListNotifierProvider.notifier).refresh(),
-                icon: const Icon(Icons.refresh_rounded, size: 18),
+                icon: const Icon(Icons.refresh_rounded, size: 16),
                 label: const Text('Retry'),
               ),
             ],
@@ -216,33 +217,33 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    width: 64, height: 64,
+                    width: 56, height: 56,
                     decoration: BoxDecoration(
-                      color: cs.onSurface.withValues(alpha: 0.05),
+                      color: cs.onSurface.withValues(alpha: 0.04),
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Icon(
                       isCompletedTab ? Icons.check_circle_outline_rounded : Icons.downloading_rounded,
-                      size: 28, color: cs.onSurface.withValues(alpha: 0.2),
+                      size: 26, color: cs.onSurface.withValues(alpha: 0.25),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 14),
                   Text(
                     isCompletedTab ? 'No completed downloads' : 'No active downloads',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(color: cs.onSurface.withValues(alpha: 0.6)),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(color: cs.onSurface.withValues(alpha: 0.7)),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 4),
                   Text(
                     isCompletedTab
                         ? 'Completed downloads will appear here'
                         : 'Add a magnet to start streaming',
-                    style: TextStyle(fontSize: 13, color: cs.onSurface.withValues(alpha: 0.35)),
+                    style: TextStyle(fontSize: 12, color: cs.onSurface.withValues(alpha: 0.4)),
                   ),
                   if (!isCompletedTab) ...[
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 16),
                     FilledButton.icon(
                       onPressed: () => context.push('/add-torrent'),
-                      icon: const Icon(Icons.add_rounded, size: 18),
+                      icon: const Icon(Icons.add_rounded, size: 16),
                       label: const Text('Add Torrent'),
                     ),
                   ],
@@ -253,7 +254,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         }
 
         return ListView.builder(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           itemCount: filtered.length,
           itemBuilder: (_, i) => TorrentTile(torrent: filtered[i]),
         );
@@ -271,16 +272,16 @@ class _SearchResultTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     return Card(
-      margin: const EdgeInsets.symmetric(vertical: 4),
+      margin: const EdgeInsets.symmetric(vertical: 3),
       child: ListTile(
         leading: Container(
-          width: 40,
-          height: 40,
+          width: 36,
+          height: 36,
           decoration: BoxDecoration(
             color: TorStreamTheme.seedColor.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Icon(Icons.movie_rounded, color: TorStreamTheme.seedColor, size: 20),
+          child: const Icon(Icons.movie_rounded, color: TorStreamTheme.seedColor, size: 18),
         ),
         title: Text(
           result.title.isNotEmpty ? result.title : 'Torrent #${result.torrentId}',
@@ -294,7 +295,7 @@ class _SearchResultTile extends StatelessWidget {
         ),
         trailing: Chip(
           label: Text(result.category,
-            style: TextStyle(fontSize: 10, color: TorStreamTheme.seedColor)),
+            style: const TextStyle(fontSize: 10, color: TorStreamTheme.seedColor)),
           backgroundColor: TorStreamTheme.seedColor.withValues(alpha: 0.1),
           side: BorderSide.none,
           visualDensity: VisualDensity.compact,

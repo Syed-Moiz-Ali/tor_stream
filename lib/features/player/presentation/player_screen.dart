@@ -1,17 +1,24 @@
 import 'dart:async';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:video_player/video_player.dart';
-import '../../../bridge/bridge.dart';
-import '../../../shared/torrent_box.dart';
-import '../../../app/theme.dart';
+import 'package:screen_brightness/screen_brightness.dart';
+import 'package:volume_controller/volume_controller.dart';
+
+// Your backend imports
 import '../providers/player_provider.dart';
 
-// ── Professional Torrent Video Player ──────────────────────────────────────
-// Design inspired by VLC, IINA, and Infuse — clean, minimal, gesture-driven.
+// ── Ultra-Premium Design Tokens ──
+const Color _ytRed = Color(0xFFFF0000);
+const Color _pureWhite = Color(0xFFFFFFFF);
+const Color _white70 = Color(0xB3FFFFFF);
+const Color _white30 = Color(0x4DFFFFFF);
+
+enum VideoFit { contain, cover, fill }
 
 class PlayerScreen extends ConsumerStatefulWidget {
   final BigInt torrentId;
@@ -32,46 +39,61 @@ class PlayerScreen extends ConsumerStatefulWidget {
 }
 
 class _PlayerScreenState extends ConsumerState<PlayerScreen>
-    with SingleTickerProviderStateMixin {
-  // ── Core ──
-  VideoPlayerController? _controller;
-  bool _startedInit = false;
+    with TickerProviderStateMixin {
+  // ── Core Engine ──
+  VideoPlayerController? _ctrl;
+  bool _isInit = false;
   bool _videoError = false;
-  String? _fileName;
 
-  // ── UI state ──
-  bool _fullscreen = false;
+  // ── UI State ──
   bool _uiVisible = true;
-  Timer? _uiTimer;
-  late AnimationController _animCtrl;
+  Timer? _hideTimer;
+  bool _isLocked = false;
+  double _playbackSpeed = 1.0;
+  VideoFit _videoFit = VideoFit.contain;
 
-  // ── Gestures ──
-  final GlobalKey _gestureKey = GlobalKey();
-  bool _locked = false;
-  double _gestureStartVal = 0;
-  bool _gestureLeft = false;
-  double _gestureDelta = 0;
-  bool _gestureActive = false;
+  // ── MX Gestures (Volume/Brightness/Seek) ──
+  double _brightness = 0.5;
+  double _volume = 0.5;
+  bool _isVerticalDrag = false;
+  bool _isLeftZone = false;
+  double _dragStartY = 0;
+  double _dragStartValue = 0;
 
-  // ── Playback ──
-  double _speed = 1.0;
-  final List<double> _speeds = [0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
-  int _sleepMins = 0;
-  Timer? _sleepTimer;
-  int _aspectIdx = 0;
-  final List<double> _aspects = [0, 16 / 9, 4 / 3, 1.0];
+  bool _isHorizontalDrag = false;
+  double _dragStartX = 0;
+  Duration _dragStartPos = Duration.zero;
+  Duration _seekDelta = Duration.zero;
 
-  double get _rw => MediaQuery.of(context).size.width;
-  double get _rh => MediaQuery.of(context).size.height;
+  bool _showHud = false;
+  Timer? _hudTimer;
 
-  // ── Lifecycle ──
+  // ── YouTube Double Tap & Long Press ──
+  bool _showLeftRipple = false;
+  bool _showRightRipple = false;
+  int _seekTapCount = 0;
+  Timer? _seekTapTimer;
+
+  bool _isHoldingSpeed = false; // Tracks 2x long press
+
+  // ── Animations ──
+  late AnimationController _fadeCtrl;
+  late Animation<double> _fadeAnim;
+  bool _isScrubbing = false;
+
   @override
   void initState() {
     super.initState();
-    _animCtrl = AnimationController(
+    _fadeCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 250),
+      value: 1.0,
     );
+    _fadeAnim = CurvedAnimation(parent: _fadeCtrl, curve: Curves.easeOutCubic);
+
+    _setupHardware();
+    _enterImmersive();
+
     Future.microtask(
       () => ref
           .read(
@@ -84,258 +106,265 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     );
   }
 
-  @override
-  void dispose() {
-    _uiTimer?.cancel();
-    _sleepTimer?.cancel();
-    _controller?.removeListener(_onControllerUpdate);
-    _savePos();
-    _controller?.dispose();
-    if (widget.isStreamOnly)
-      removeTorrent(id: widget.torrentId, deleteFiles: true);
-    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-    WakelockPlus.disable();
-    _animCtrl.dispose();
-    super.dispose();
+  Future<void> _setupHardware() async {
+    try {
+      _brightness = await ScreenBrightness().current;
+    } catch (_) {}
+    try {
+      _volume = await VolumeController().getVolume();
+    } catch (_) {}
   }
 
-  void _savePos() {
-    if (!mounted || !widget.isStreamOnly || widget.magnetUri == null) return;
-    if (_controller == null || !_controller!.value.isInitialized) return;
-    TorrentBox.instance.savePosition(
-      widget.magnetUri!,
-      positionMs: _controller!.value.position.inMilliseconds,
-      durationMs: _controller!.value.duration.inMilliseconds,
-      title: _fileName,
-    );
-  }
-
-  void _onControllerUpdate() {
-    if (mounted) setState(() {});
-    _savePos();
-  }
-
-  // ── Orientation ──
-  void _enterFullscreen() {
-    if (_fullscreen) return;
+  void _enterImmersive() {
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.landscapeLeft,
       DeviceOrientation.landscapeRight,
     ]);
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-    setState(() => _fullscreen = true);
     WakelockPlus.enable();
-    _showUITemp();
+    _wakeUI();
   }
 
-  void _exitFullscreen() {
-    if (!_fullscreen) return;
+  @override
+  void dispose() {
+    _hideTimer?.cancel();
+    _hudTimer?.cancel();
+    _seekTapTimer?.cancel();
+    _ctrl?.removeListener(_onVideoTick);
+    _ctrl?.dispose();
+    _fadeCtrl.dispose();
+
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-    setState(() {
-      _fullscreen = false;
-      _uiVisible = true;
-    });
-    _animCtrl.forward();
     WakelockPlus.disable();
+    super.dispose();
   }
 
-  void _showUITemp() {
-    _uiTimer?.cancel();
-    setState(() => _uiVisible = true);
-    _animCtrl.forward();
-    if (!_locked) {
-      _uiTimer = Timer(const Duration(seconds: 4), () {
-        if (mounted) {
-          setState(() => _uiVisible = false);
-          _animCtrl.reverse();
-        }
-      });
-    }
+  void _onVideoTick() {
+    if (mounted) setState(() {});
   }
 
-  // ── Init video ──
   void _initVideo(String url) async {
-    if (_startedInit || _videoError) return;
-    _startedInit = true;
+    if (_isInit || _videoError) return;
+    _isInit = true;
     try {
-      final c = VideoPlayerController.networkUrl(Uri.parse(url));
-      await c.initialize();
+      _ctrl = VideoPlayerController.networkUrl(Uri.parse(url));
+      await _ctrl!.initialize();
       if (!mounted) {
-        c.dispose();
+        _ctrl!.dispose();
         return;
       }
-      if (widget.isStreamOnly && widget.magnetUri != null) {
-        final saved = TorrentBox.instance.get(widget.magnetUri!);
-        if (saved != null &&
-            saved.positionMs > 3000 &&
-            saved.durationMs > 0 &&
-            saved.positionMs < saved.durationMs - 5000) {
-          await c.seekTo(saved.position);
-        }
-      }
-      c.setPlaybackSpeed(_speed);
-      setState(() {
-        _controller = c;
-      });
-      _controller!.addListener(_onControllerUpdate);
-      _controller!.play();
+      _ctrl!.setPlaybackSpeed(_playbackSpeed);
+      _ctrl!.addListener(_onVideoTick);
+      _ctrl!.play();
+      ref
+          .read(
+            playerProvider((
+              torrentId: widget.torrentId,
+              fileIndex: widget.fileIndex,
+            )).notifier,
+          )
+          .play();
     } catch (_) {
       if (mounted) setState(() => _videoError = true);
     }
   }
 
-  // ── Gesture handler ──
-  void _onGestureStart(DragStartDetails d) {
-    if (_locked) return;
-    _gestureLeft = d.localPosition.dx < _rw * 0.5;
-    _gestureStartVal = _controller?.value.volume ?? 0.5;
-    _gestureActive = true;
-    _gestureDelta = 0;
-    _showUITemp();
+  // ── UI Visibility ──
+  void _wakeUI() {
+    _hideTimer?.cancel();
+    if (!mounted) return;
+    setState(() => _uiVisible = true);
+    _fadeCtrl.forward();
+
+    if (_isLocked || _isScrubbing || _isHoldingSpeed) return;
+    _hideTimer = Timer(const Duration(seconds: 3), () {
+      if (mounted &&
+          !_isHorizontalDrag &&
+          !_isVerticalDrag &&
+          _ctrl?.value.isPlaying == true) {
+        setState(() => _uiVisible = false);
+        _fadeCtrl.reverse();
+      }
+    });
   }
 
-  void _onGestureUpdate(DragUpdateDetails d) {
-    if (_locked || !_gestureActive) return;
-    _gestureDelta -= d.delta.dy / _rh * 2;
-    _gestureDelta = _gestureDelta.clamp(-1.0, 1.0);
-    final val = (_gestureStartVal + _gestureDelta).clamp(0.0, 1.0);
-    _controller?.setVolume(val);
+  void _toggleUI() {
+    if (_isLocked) return;
+    if (_uiVisible) {
+      setState(() => _uiVisible = false);
+      _fadeCtrl.reverse();
+      _hideTimer?.cancel();
+    } else {
+      _wakeUI();
+    }
+  }
+
+  void _performSeek(Duration position) {
+    if (_ctrl == null) return;
+    final clamped = Duration(
+      milliseconds: position.inMilliseconds.clamp(
+        0,
+        _ctrl!.value.duration.inMilliseconds,
+      ),
+    );
+    _ctrl!.seekTo(clamped);
+    ref
+        .read(
+          playerProvider((
+            torrentId: widget.torrentId,
+            fileIndex: widget.fileIndex,
+          )).notifier,
+        )
+        .seek(clamped);
+    _wakeUI();
+  }
+
+  // ── Gestures: YouTube Long Press (2x Speed) ──
+  void _onLongPressStart(LongPressStartDetails d) {
+    if (_isLocked || _ctrl == null || !_ctrl!.value.isInitialized) return;
+    // Prevent triggering if touching near the bottom controls
+    if (_uiVisible &&
+        d.localPosition.dy > MediaQuery.of(context).size.height * 0.7) {
+      return;
+    }
+
+    HapticFeedback.selectionClick();
+    _ctrl!.setPlaybackSpeed(2.0);
+    setState(() => _isHoldingSpeed = true);
+    _hideTimer?.cancel();
+  }
+
+  void _onLongPressEnd(LongPressEndDetails d) {
+    _cancelLongPress();
+  }
+
+  void _onLongPressCancel() {
+    _cancelLongPress();
+  }
+
+  void _cancelLongPress() {
+    if (!_isHoldingSpeed || _ctrl == null) return;
+    _ctrl!.setPlaybackSpeed(_playbackSpeed); // Revert to user's selected speed
+    setState(() => _isHoldingSpeed = false);
+    _wakeUI();
+  }
+
+  // ── Gestures: YouTube Double Tap ──
+  void _handleDoubleTap(TapDownDetails d) {
+    if (_isLocked || _ctrl == null) return;
+    final width = MediaQuery.of(context).size.width;
+    final x = d.localPosition.dx;
+
+    // Deadzone in the center 40% to allow for normal single taps to toggle UI
+    if (x > width * 0.3 && x < width * 0.7) return;
+
+    HapticFeedback.lightImpact();
+    final isLeft = x < width * 0.3;
+
+    _seekTapCount++;
+    _seekTapTimer?.cancel();
+
+    setState(() {
+      if (isLeft) {
+        _showLeftRipple = true;
+      } else {
+        _showRightRipple = true;
+      }
+    });
+
+    _performSeek(_ctrl!.value.position + Duration(seconds: isLeft ? -10 : 10));
+
+    _seekTapTimer = Timer(const Duration(milliseconds: 650), () {
+      if (mounted) {
+        setState(() {
+          _showLeftRipple = false;
+          _showRightRipple = false;
+          _seekTapCount = 0;
+        });
+      }
+    });
+  }
+
+  // ── Gestures: MX Vertical (Volume/Brightness) ──
+  void _onVerticalStart(DragStartDetails d) {
+    if (_isLocked || _uiVisible || _isHoldingSpeed) return;
+    final width = MediaQuery.of(context).size.width;
+    final x = d.localPosition.dx;
+
+    if (x > width * 0.4 && x < width * 0.6) return;
+
+    _isVerticalDrag = true;
+    _isLeftZone = x < width * 0.5;
+    _dragStartY = d.localPosition.dy;
+    _dragStartValue = _isLeftZone ? _brightness : _volume;
+    _triggerHud();
+  }
+
+  void _onVerticalUpdate(DragUpdateDetails d) {
+    if (!_isVerticalDrag || _isLocked) return;
+    final height = MediaQuery.of(context).size.height;
+
+    final delta = (_dragStartY - d.localPosition.dy) / height * 1.5;
+    final newValue = (_dragStartValue + delta).clamp(0.0, 1.0);
+
+    if (_isLeftZone) {
+      _brightness = newValue;
+      ScreenBrightness().setScreenBrightness(newValue);
+    } else {
+      _volume = newValue;
+      VolumeController().setVolume(newValue);
+      _ctrl?.setVolume(newValue);
+    }
+    setState(() {});
+    _triggerHud();
+  }
+
+  void _onVerticalEnd(DragEndDetails _) => _isVerticalDrag = false;
+
+  void _triggerHud() {
+    setState(() => _showHud = true);
+    _hudTimer?.cancel();
+    _hudTimer = Timer(const Duration(milliseconds: 1200), () {
+      if (mounted) setState(() => _showHud = false);
+    });
+  }
+
+  // ── Gestures: MX Horizontal (Seek) ──
+  void _onHorizontalStart(DragStartDetails d) {
+    if (_isLocked || _ctrl == null || _isHoldingSpeed) return;
+    if (d.localPosition.dy > MediaQuery.of(context).size.height * 0.8) return;
+
+    _isHorizontalDrag = true;
+    _dragStartX = d.localPosition.dx;
+    _dragStartPos = _ctrl!.value.position;
+    _seekDelta = Duration.zero;
+    _wakeUI();
+  }
+
+  void _onHorizontalUpdate(DragUpdateDetails d) {
+    if (!_isHorizontalDrag || _isLocked) return;
+    final width = MediaQuery.of(context).size.width;
+
+    final deltaSeconds = ((d.localPosition.dx - _dragStartX) / width) * 120.0;
+    _seekDelta = Duration(milliseconds: (deltaSeconds * 1000).toInt());
     setState(() {});
   }
 
-  void _onGestureEnd(DragEndDetails d) {
-    _gestureActive = false;
-  }
-
-  String get _gestureLabel {
-    final pct = ((_gestureStartVal + _gestureDelta).clamp(0.0, 1.0) * 100)
-        .round();
-    return '$pct%';
-  }
-
-  // ── Speed ──
-  void _nextSpeed() {
-    final i = (_speeds.indexOf(_speed) + 1) % _speeds.length;
-    setState(() => _speed = _speeds[i]);
-    _controller?.setPlaybackSpeed(_speed);
-    _toast('${_speed}x');
-  }
-
-  void _prevSpeed() {
-    final i = (_speeds.indexOf(_speed) - 1 + _speeds.length) % _speeds.length;
-    setState(() => _speed = _speeds[i]);
-    _controller?.setPlaybackSpeed(_speed);
-    _toast('${_speed}x');
-  }
-
-  // ── Sleep timer ──
-  void _toggleSleepTimer() {
-    if (_sleepTimer != null) {
-      _sleepTimer?.cancel();
-      setState(() {
-        _sleepTimer = null;
-        _sleepMins = 0;
-      });
-      _toast('Sleep timer off');
-      return;
+  void _onHorizontalEnd(DragEndDetails _) {
+    if (_isHorizontalDrag && _ctrl != null) {
+      _performSeek(_dragStartPos + _seekDelta);
     }
-    _showPicker([
-      ListTile(
-        title: const Text('15 min'),
-        leading: const Icon(Icons.timer_outlined),
-        onTap: () => _setSleep(15),
-      ),
-      ListTile(
-        title: const Text('30 min'),
-        leading: const Icon(Icons.timer_outlined),
-        onTap: () => _setSleep(30),
-      ),
-      ListTile(
-        title: const Text('45 min'),
-        leading: const Icon(Icons.timer_outlined),
-        onTap: () => _setSleep(45),
-      ),
-      ListTile(
-        title: const Text('60 min'),
-        leading: const Icon(Icons.timer_outlined),
-        onTap: () => _setSleep(60),
-      ),
-      ListTile(
-        title: const Text('End of file'),
-        leading: const Icon(Icons.movie_outlined),
-        onTap: () {
-          Navigator.pop(context);
-          _toast('Sleep: end of file');
-        },
-      ),
-    ], 'Sleep Timer');
-  }
-
-  void _setSleep(int mins) {
-    Navigator.pop(context);
-    _sleepTimer?.cancel();
-    setState(() => _sleepMins = mins);
-    _sleepTimer = Timer(Duration(minutes: mins), () {
-      _controller?.pause();
-      if (mounted) _toast('Playback paused (sleep timer)');
-      setState(() {
-        _sleepTimer = null;
-        _sleepMins = 0;
-      });
+    setState(() {
+      _isHorizontalDrag = false;
+      _seekDelta = Duration.zero;
     });
-    _toast('Sleep: $mins min');
   }
 
-  // ── Toast ──
-  void _toast(String msg) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).clearSnackBars();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Center(
-          child: Text(msg, style: const TextStyle(fontWeight: FontWeight.w600)),
-        ),
-        duration: const Duration(seconds: 1),
-        backgroundColor: Colors.black87,
-        behavior: SnackBarBehavior.floating,
-        margin: EdgeInsets.only(
-          bottom: _fullscreen ? 100 : 80,
-          left: 80,
-          right: 80,
-        ),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        padding: const EdgeInsets.symmetric(vertical: 8),
-      ),
-    );
-  }
+  // ═══════════════════════════════════════════════════════════════════════════
+  // BUILD
+  // ═══════════════════════════════════════════════════════════════════════════
 
-  void _showPicker(List<ListTile> tiles, String title) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: const Color(0xFF1A1A2E),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (_) => Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              title,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 8),
-            ...tiles,
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ── Build ──
   @override
   Widget build(BuildContext context) {
     final st = ref.watch(
@@ -344,426 +373,150 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
         fileIndex: widget.fileIndex,
       )),
     );
-    _fileName ??= st.fileName;
 
-    if (st.streamUrl != null &&
-        _controller == null &&
-        !_startedInit &&
-        !_videoError) {
+    if (st.streamUrl != null && _ctrl == null && !_isInit) {
       _initVideo(st.streamUrl!);
     }
 
-    // Determine target brightness for status bar
-    SystemChrome.setSystemUIOverlayStyle(
-      SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
-        statusBarIconBrightness: _fullscreen
-            ? Brightness.light
-            : Brightness.dark,
-      ),
-    );
+    final isReady = _ctrl != null && _ctrl!.value.isInitialized;
+    final isBuffering = _ctrl != null && _ctrl!.value.isBuffering;
 
-    if (_fullscreen) return _buildFullscreen(st);
-    return _buildPortrait(st);
-  }
-
-  // ═════════════════════════════════════════════════════════════════════════
-  // PORTRAIT MODE
-  // ═════════════════════════════════════════════════════════════════════════
-  Widget _buildPortrait(StreamState st) {
-    final isReady = _controller != null && _controller!.value.isInitialized;
-    return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded),
-          onPressed: () => context.pop(),
-        ),
-        title: Text(
-          _fileName ?? 'Stream',
-          style: const TextStyle(fontSize: 15),
-        ),
-        actions: [if (isReady) _speedChip()],
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: st.error != null
-                ? _errorView(st.error!)
-                : st.isInitialized
-                ? _videoView(st)
-                : _loadingView(st),
-          ),
-          if (isReady) _controlBar(),
-        ],
-      ),
-    );
-  }
-
-  Widget _videoView(StreamState st) {
-    if (_controller == null || !_controller!.value.isInitialized) {
-      return _loadingView(st);
-    }
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        Center(
-          child: AspectRatio(
-            aspectRatio: _effectiveAspect(),
-            child: VideoPlayer(_controller!),
-          ),
-        ),
-        if (_controller!.value.isBuffering) _bufferingBadge(),
-        if (_speed != 1.0)
-          Positioned(
-            bottom: 8,
-            right: 8,
-            child: _badge('${_speed}x', TorStreamTheme.seedColor),
-          ),
-        if (_sleepMins > 0)
-          Positioned(
-            top: 8,
-            left: 8,
-            child: _badge('$_sleepMins\u2009m', TorStreamTheme.accentAmber),
-          ),
-        Positioned(
-          top: 8,
-          right: 8,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _iconBtn(Icons.fullscreen_rounded, 18, _enterFullscreen),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _controlBar() {
-    final c = _controller!;
-    if (!c.value.isInitialized) return const SizedBox.shrink();
-    final pos = c.value.position;
-    final dur = c.value.duration;
-    final buffered = c.value.buffered.isNotEmpty
-        ? c.value.buffered.last.end
-        : Duration.zero;
-    final playing = c.value.isPlaying;
-
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Colors.transparent, Colors.black87],
-        ),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Seek bar
-          _seekBar(pos, dur, buffered, (d) => c.seekTo(d)),
-          const SizedBox(height: 8),
-          // Controls row
-          Row(
-            children: [
-              _txt(_fmt(pos), 11),
-              const Spacer(),
-              _ctrlBtn(Icons.replay_10_rounded, 22, () {
-                final t = Duration(
-                  seconds: (pos.inSeconds - 10).clamp(0, dur.inSeconds),
-                );
-                c.seekTo(t);
-              }),
-              const SizedBox(width: 28),
-              _playBtn(playing, 52, () {
-                playing ? c.pause() : c.play();
-                setState(() {});
-              }),
-              const SizedBox(width: 28),
-              _ctrlBtn(Icons.forward_10_rounded, 22, () {
-                final t = Duration(
-                  seconds: (pos.inSeconds + 10).min(dur.inSeconds),
-                );
-                c.seekTo(t);
-              }),
-              const Spacer(),
-              _txt(_fmt(dur), 11),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _seekBar(
-    Duration pos,
-    Duration dur,
-    Duration buf,
-    void Function(Duration) onSeek,
-  ) {
-    final maxSec = dur.inSeconds > 0 ? dur.inSeconds.toDouble() : 1.0;
-    final val = pos.inSeconds.toDouble().clamp(0.0, maxSec);
-    final bufVal = buf.inSeconds.toDouble().clamp(0.0, maxSec);
-    return SliderTheme(
-      data: SliderThemeData(
-        trackHeight: 3,
-        activeTrackColor: TorStreamTheme.seedColor,
-        inactiveTrackColor: Colors.white24,
-        thumbColor: Colors.white,
-        overlayColor: TorStreamTheme.seedColor.withValues(alpha: 0.15),
-        thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
-        overlayShape: const RoundSliderOverlayShape(overlayRadius: 14),
-      ),
-      child: Stack(
-        alignment: Alignment.centerLeft,
-        children: [
-          LinearProgressIndicator(
-            value: bufVal / maxSec,
-            backgroundColor: Colors.white12,
-            valueColor: const AlwaysStoppedAnimation(Colors.white24),
-            minHeight: 3,
-          ),
-          Slider(
-            value: val,
-            min: 0,
-            max: maxSec,
-            onChanged: (v) => onSeek(Duration(seconds: v.toInt())),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ═════════════════════════════════════════════════════════════════════════
-  // FULLSCREEN MODE — VLC-Style
-  // ═════════════════════════════════════════════════════════════════════════
-  Widget _buildFullscreen(StreamState st) {
-    final isReady = _controller != null && _controller!.value.isInitialized;
     return Scaffold(
       backgroundColor: Colors.black,
       body: GestureDetector(
-        key: _gestureKey,
-        onTap: _showUITemp,
-        onVerticalDragStart: _onGestureStart,
-        onVerticalDragUpdate: _onGestureUpdate,
-        onVerticalDragEnd: _onGestureEnd,
+        behavior: HitTestBehavior.opaque,
+        onTap: _toggleUI,
+        onDoubleTapDown: _handleDoubleTap,
+        onLongPressStart: _onLongPressStart,
+        onLongPressEnd: _onLongPressEnd,
+        onLongPressCancel: _onLongPressCancel,
+        onVerticalDragStart: _onVerticalStart,
+        onVerticalDragUpdate: _onVerticalUpdate,
+        onVerticalDragEnd: _onVerticalEnd,
+        onHorizontalDragStart: _onHorizontalStart,
+        onHorizontalDragUpdate: _onHorizontalUpdate,
+        onHorizontalDragEnd: _onHorizontalEnd,
         child: Stack(
           children: [
-            // Video layer
-            Center(
-              child: isReady
-                  ? AspectRatio(
-                      aspectRatio: _effectiveAspect(),
-                      child: VideoPlayer(_controller!),
-                    )
-                  : const SizedBox(
-                      width: 36,
-                      height: 36,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 3,
-                        color: TorStreamTheme.seedColor,
-                      ),
-                    ),
+            // ── 1. Video Canvas ──
+            Positioned.fill(
+              child: isReady ? _buildVideoLayer() : const SizedBox.shrink(),
             ),
 
-            // Lock overlay
-            if (_locked)
+            // ── 2. Buffering Indicator ──
+            if (!isReady || isBuffering)
+              const Center(
+                child: CircularProgressIndicator(
+                  color: _pureWhite,
+                  strokeWidth: 2.0,
+                ),
+              ),
+
+            // ── 3. Gradient Scrims ──
+            if (_uiVisible && !_isLocked)
               Positioned.fill(
-                child: GestureDetector(
-                  onDoubleTap: () => setState(() => _locked = false),
-                  child: Container(
-                    color: Colors.black26,
-                    child: Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.lock_outline_rounded,
-                            color: Colors.white.withValues(alpha: 0.7),
-                            size: 40,
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Double-tap to unlock',
-                            style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.5),
-                              fontSize: 13,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-
-            // Gesture HUD
-            if (_gestureActive && !_locked)
-              Positioned(
-                left: _gestureLeft ? 24 : null,
-                right: !_gestureLeft ? 24 : null,
-                top: _rh * 0.3,
-                child: AnimatedOpacity(
-                  opacity: _gestureActive ? 1 : 0,
-                  duration: const Duration(milliseconds: 150),
-                  child: Container(
-                    width: 72,
-                    height: 72,
-                    decoration: BoxDecoration(
-                      color: Colors.black54,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          _gestureLeft
-                              ? Icons.brightness_medium_rounded
-                              : Icons.volume_up_rounded,
-                          color: Colors.white,
-                          size: 24,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          _gestureLabel,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-
-            // Buffering
-            if (isReady && _controller!.value.isBuffering)
-              Positioned(
-                top: 0,
-                bottom: 0,
-                left: 0,
-                right: 0,
-                child: Center(child: _bufferingBadge()),
-              ),
-
-            // Sleep indicator
-            if (_sleepMins > 0 && _uiVisible)
-              Positioned(
-                top: 60,
-                left: 16,
-                child: _badge(
-                  'Sleep: $_sleepMins\u2009m',
-                  TorStreamTheme.accentAmber,
-                ),
-              ),
-
-            // TOP BAR
-            if (_uiVisible && !_locked)
-              Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                child: Container(
-                  padding: EdgeInsets.only(
-                    top: MediaQuery.of(context).padding.top + 4,
-                  ),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.black.withValues(alpha: 0.8),
-                        Colors.transparent,
-                      ],
-                    ),
-                  ),
-                  child: Row(
+                child: IgnorePointer(
+                  child: Column(
                     children: [
-                      const SizedBox(width: 4),
-                      IconButton(
-                        icon: const Icon(
-                          Icons.arrow_back_rounded,
-                          color: Colors.white,
-                          size: 22,
-                        ),
-                        onPressed: () {
-                          _exitFullscreen();
-                          context.pop();
-                        },
-                      ),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          _fileName ?? 'Stream',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      // Speed down/up
-                      IconButton(
-                        icon: Text(
-                          '${_speed}x',
-                          style: const TextStyle(
-                            color: TorStreamTheme.seedColor,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
+                      Container(
+                        height: 140,
+                        decoration: const BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [Colors.black87, Colors.transparent],
                           ),
                         ),
-                        onPressed: _nextSpeed,
-                        onLongPress: _prevSpeed,
                       ),
-                      _iconBtn(
-                        Icons.timer_outlined,
-                        20,
-                        _toggleSleepTimer,
-                        color: _sleepMins > 0
-                            ? TorStreamTheme.accentAmber
-                            : Colors.white70,
+                      const Spacer(),
+                      Container(
+                        height: 180,
+                        decoration: const BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.bottomCenter,
+                            end: Alignment.topCenter,
+                            colors: [Colors.black87, Colors.transparent],
+                          ),
+                        ),
                       ),
-                      _iconBtn(Icons.crop_original_rounded, 20, () {
-                        setState(
-                          () => _aspectIdx = (_aspectIdx + 1) % _aspects.length,
-                        );
-                        _toast(['Default', '16:9', '4:3', 'Fill'][_aspectIdx]);
-                      }),
-                      _iconBtn(
-                        _locked ? Icons.lock_rounded : Icons.lock_open_rounded,
-                        20,
-                        () => setState(() => _locked = !_locked),
-                        color: _locked
-                            ? TorStreamTheme.accentAmber
-                            : Colors.white70,
-                      ),
-                      _iconBtn(
-                        Icons.fullscreen_exit_rounded,
-                        20,
-                        _exitFullscreen,
-                      ),
-                      const SizedBox(width: 4),
                     ],
                   ),
                 ),
               ),
 
-            // BOTTOM BAR
-            if (_uiVisible && !_locked && isReady)
+            // ── 4. Edge Ripples (YouTube Double Tap) ──
+            if (_showLeftRipple) _buildEdgeRipple(isLeft: true),
+            if (_showRightRipple) _buildEdgeRipple(isLeft: false),
+
+            // ── 5. MX Style Frosted HUD (Volume/Brightness) ──
+            if (_showHud && !_isLocked && _isVerticalDrag)
+              Center(child: _buildFrostedHud()),
+
+            // ── 6. Seek Preview HUD ──
+            if (_isHorizontalDrag && isReady) Center(child: _buildSeekHud()),
+
+            // ── 7. 2x Speed Long Press HUD ──
+            if (_isHoldingSpeed)
               Positioned(
-                bottom: 0,
+                top: MediaQuery.of(context).padding.top + 48,
                 left: 0,
                 right: 0,
-                child: _fullscreenControls(),
+                child: Center(child: _buildSpeedHud()),
+              ),
+
+            // ── 8. Core UI Controls ──
+            FadeTransition(
+              opacity: _fadeAnim,
+              child: IgnorePointer(
+                ignoring: !_uiVisible || _isLocked,
+                child: Stack(
+                  children: [
+                    if (isReady) ...[
+                      Positioned(
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        child: _buildTopBar(st.fileName ?? 'Video'),
+                      ),
+                      Center(child: _buildCenterControls()),
+                      Positioned(
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        child: _buildBottomBar(),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+
+            // ── 9. Locked State Overlay ──
+            if (_isLocked)
+              Positioned(
+                top: 40,
+                left: MediaQuery.of(context).padding.left + 24,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(24),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                    child: Container(
+                      color: Colors.white.withValues(alpha: 0.1),
+                      child: IconButton(
+                        icon: const Icon(
+                          Icons.lock_rounded,
+                          color: _pureWhite,
+                          size: 24,
+                        ),
+                        onPressed: () {
+                          HapticFeedback.mediumImpact();
+                          setState(() => _isLocked = false);
+                          _wakeUI();
+                        },
+                      ),
+                    ),
+                  ),
+                ),
               ),
           ],
         ),
@@ -771,298 +524,494 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     );
   }
 
-  Widget _fullscreenControls() {
-    final c = _controller!;
-    final pos = c.value.position;
-    final dur = c.value.duration;
-    final playing = c.value.isPlaying;
+  // ── UI Components ──
 
-    return Container(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).padding.bottom + 8,
-        left: 16,
-        right: 16,
-        top: 16,
-      ),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.bottomCenter,
-          end: Alignment.topCenter,
-          colors: [Colors.black.withValues(alpha: 0.9), Colors.transparent],
-        ),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Seek bar
-          _seekBar(
-            pos,
-            dur,
-            c.value.buffered.isNotEmpty
-                ? c.value.buffered.last.end
-                : Duration.zero,
-            (d) => c.seekTo(d),
-          ),
-          const SizedBox(height: 16),
-          // Center play button + time
-          Row(
-            children: [
-              _txt(_fmt(pos), 12),
-              const Spacer(),
-              _ctrlBtn(Icons.replay_10_rounded, 28, () {
-                c.seekTo(
-                  Duration(
-                    seconds: (pos.inSeconds - 10).clamp(0, dur.inSeconds),
-                  ),
-                );
-              }),
-              const SizedBox(width: 40),
-              _playBtn(playing, 64, () {
-                playing ? c.pause() : c.play();
-                setState(() {});
-              }),
-              const SizedBox(width: 40),
-              _ctrlBtn(Icons.forward_10_rounded, 28, () {
-                c.seekTo(
-                  Duration(seconds: (pos.inSeconds + 10).min(dur.inSeconds)),
-                );
-              }),
-              const Spacer(),
-              _txt(_fmt(dur), 12),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ═════════════════════════════════════════════════════════════════════════
-  // SHARED WIDGETS
-  // ═════════════════════════════════════════════════════════════════════════
-  Widget _ctrlBtn(IconData icon, double size, VoidCallback onTap) {
-    return IconButton(
-      icon: Icon(icon, size: size, color: Colors.white),
-      splashRadius: 24,
-      onPressed: onTap,
-    );
-  }
-
-  Widget _playBtn(bool playing, double size, VoidCallback onTap) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: const LinearGradient(
-          colors: [TorStreamTheme.seedColor, Color(0xFF6A5ACD)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: TorStreamTheme.seedColor.withValues(alpha: 0.35),
-            blurRadius: 14,
-            spreadRadius: 1,
-          ),
-        ],
-      ),
-      child: IconButton(
-        icon: Icon(
-          playing ? Icons.pause_rounded : Icons.play_arrow_rounded,
-          size: size * 0.5,
-          color: Colors.white,
-        ),
-        padding: EdgeInsets.zero,
-        onPressed: onTap,
-      ),
-    );
-  }
-
-  Widget _iconBtn(
-    IconData icon,
-    double size,
-    VoidCallback onTap, {
-    Color? color,
-  }) {
-    return IconButton(
-      icon: Icon(icon, size: size, color: color ?? Colors.white70),
-      constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-      padding: EdgeInsets.zero,
-      splashRadius: 18,
-      onPressed: onTap,
-    );
-  }
-
-  Widget _txt(String s, double size) {
-    return Text(
-      s,
-      style: TextStyle(
-        color: Colors.white.withValues(alpha: 0.7),
-        fontSize: size,
-        fontFamily: 'monospace',
-        fontWeight: FontWeight.w500,
-      ),
-    );
-  }
-
-  Widget _badge(String text, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.2),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
-      ),
-      child: Text(
-        text,
-        style: TextStyle(
-          color: color,
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
-  }
-
-  Widget _speedChip() {
-    return GestureDetector(
-      onTap: _nextSpeed,
-      onLongPress: _prevSpeed,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-        decoration: BoxDecoration(
-          color: TorStreamTheme.seedColor.withValues(alpha: 0.15),
-          borderRadius: BorderRadius.circular(6),
-        ),
-        child: Text(
-          '${_speed}x',
-          style: const TextStyle(
-            color: TorStreamTheme.seedColor,
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _bufferingBadge() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      decoration: BoxDecoration(
-        color: Colors.black54,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: TorStreamTheme.seedColor.withValues(alpha: 0.4),
-        ),
-      ),
-      child: const Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          SizedBox(
-            width: 14,
-            height: 14,
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-              color: TorStreamTheme.seedColor,
+  Widget _buildVideoLayer() {
+    Widget videoWidget = VideoPlayer(_ctrl!);
+    switch (_videoFit) {
+      case VideoFit.cover:
+        return SizedBox.expand(
+          child: FittedBox(
+            fit: BoxFit.cover,
+            child: SizedBox(
+              width: _ctrl!.value.size.width,
+              height: _ctrl!.value.size.height,
+              child: videoWidget,
             ),
           ),
-          SizedBox(width: 8),
-          Text(
-            'Buffering',
-            style: TextStyle(color: Colors.white, fontSize: 13),
+        );
+      case VideoFit.fill:
+        return SizedBox.expand(
+          child: FittedBox(
+            fit: BoxFit.fill,
+            child: SizedBox(
+              width: _ctrl!.value.size.width,
+              height: _ctrl!.value.size.height,
+              child: videoWidget,
+            ),
           ),
-        ],
+        );
+      case VideoFit.contain:
+        return Center(
+          child: AspectRatio(
+            aspectRatio: _ctrl!.value.aspectRatio,
+            child: videoWidget,
+          ),
+        );
+    }
+  }
+
+  Widget _buildTopBar(String title) {
+    return SafeArea(
+      bottom: false,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Row(
+          children: [
+            IconButton(
+              icon: const Icon(
+                Icons.keyboard_arrow_down_rounded,
+                color: _pureWhite,
+                size: 32,
+              ),
+              onPressed: () => context.pop(),
+            ),
+            Expanded(
+              child: Text(
+                title,
+                style: const TextStyle(
+                  color: _pureWhite,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            IconButton(
+              icon: const Icon(
+                Icons.closed_caption_outlined,
+                color: _pureWhite,
+                size: 24,
+              ),
+              onPressed: () {}, // Attach your subtitle sheet logic here
+            ),
+            IconButton(
+              icon: const Icon(
+                Icons.settings_outlined,
+                color: _pureWhite,
+                size: 24,
+              ),
+              onPressed: _showYouTubeSettingsSheet,
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _errorView(String? err) {
-    return Center(
+  Widget _buildCenterControls() {
+    final playing = _ctrl!.value.isPlaying;
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        IconButton(
+          icon: const Icon(
+            Icons.skip_previous_rounded,
+            color: _pureWhite,
+            size: 36,
+          ),
+          onPressed: () {},
+        ),
+        const SizedBox(width: 48),
+        IconButton(
+          iconSize: 64,
+          icon: Icon(
+            playing ? Icons.pause_rounded : Icons.play_arrow_rounded,
+            color: _pureWhite,
+          ),
+          onPressed: () {
+            HapticFeedback.selectionClick();
+            playing ? _ctrl!.pause() : _ctrl!.play();
+            _wakeUI();
+          },
+        ),
+        const SizedBox(width: 48),
+        IconButton(
+          icon: const Icon(
+            Icons.skip_next_rounded,
+            color: _pureWhite,
+            size: 36,
+          ),
+          onPressed: () {},
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBottomBar() {
+    final pos = _ctrl!.value.position;
+    final dur = _ctrl!.value.duration;
+
+    return SafeArea(
+      top: false,
       child: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                Text(
+                  "${_fmt(pos)} / ${_fmt(dur)}",
+                  style: const TextStyle(
+                    color: _pureWhite,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const Spacer(),
+                IconButton(
+                  icon: const Icon(
+                    Icons.lock_open_rounded,
+                    color: _pureWhite,
+                    size: 20,
+                  ),
+                  onPressed: () {
+                    HapticFeedback.mediumImpact();
+                    setState(() {
+                      _isLocked = true;
+                      _uiVisible = false;
+                    });
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(
+                    Icons.aspect_ratio_rounded,
+                    color: _pureWhite,
+                    size: 20,
+                  ),
+                  onPressed: () {
+                    setState(
+                      () => _videoFit =
+                          VideoFit.values[(_videoFit.index + 1) %
+                              VideoFit.values.length],
+                    );
+                    _wakeUI();
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            _buildPremiumScrubber(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPremiumScrubber() {
+    final durMs = _ctrl!.value.duration.inMilliseconds.toDouble();
+    final posMs = _ctrl!.value.position.inMilliseconds.toDouble().clamp(
+      0.0,
+      durMs > 0 ? durMs : 1.0,
+    );
+    double bufMs = _ctrl!.value.buffered.isNotEmpty
+        ? _ctrl!.value.buffered.last.end.inMilliseconds.toDouble()
+        : 0.0;
+
+    return SizedBox(
+      height: 20,
+      child: SliderTheme(
+        data: SliderThemeData(
+          trackHeight: _isScrubbing ? 4.0 : 2.0,
+          thumbShape: RoundSliderThumbShape(
+            enabledThumbRadius: _isScrubbing ? 8.0 : 6.0,
+            elevation: 0,
+          ),
+          overlayShape: const RoundSliderOverlayShape(overlayRadius: 16.0),
+          activeTrackColor: _ytRed,
+          inactiveTrackColor: _white30,
+          thumbColor: _ytRed,
+          overlayColor: _ytRed.withValues(alpha: 0.2),
+        ),
+        child: Stack(
+          alignment: Alignment.centerLeft,
+          children: [
+            LinearProgressIndicator(
+              value: durMs > 0 ? bufMs / durMs : 0,
+              backgroundColor: Colors.transparent,
+              valueColor: const AlwaysStoppedAnimation(_white70),
+              minHeight: _isScrubbing ? 4.0 : 2.0,
+            ),
+            Slider(
+              value: posMs,
+              min: 0.0,
+              max: durMs > 0 ? durMs : 1.0,
+              onChangeStart: (_) {
+                setState(() => _isScrubbing = true);
+                _hideTimer?.cancel();
+              },
+              onChanged: (val) =>
+                  _ctrl!.seekTo(Duration(milliseconds: val.toInt())),
+              onChangeEnd: (val) {
+                setState(() => _isScrubbing = false);
+                _performSeek(Duration(milliseconds: val.toInt()));
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ── Visual Overlays ──
+
+  Widget _buildEdgeRipple({required bool isLeft}) {
+    return Positioned(
+      left: isLeft ? 0 : null,
+      right: isLeft ? null : 0,
+      top: 0,
+      bottom: 0,
+      width: MediaQuery.of(context).size.width * 0.4,
+      child: IgnorePointer(
+        child: ClipPath(
+          clipper: _SemiCircleClipper(isLeft: isLeft),
+          child: Container(
+            color: Colors.white.withValues(alpha: 0.1),
+            child: Center(
+              child: Padding(
+                padding: EdgeInsets.only(
+                  left: isLeft ? 0 : 40,
+                  right: isLeft ? 40 : 0,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (isLeft)
+                          const Icon(
+                            Icons.play_arrow_rounded,
+                            color: _pureWhite,
+                          ),
+                        Icon(
+                          isLeft
+                              ? Icons.play_arrow_rounded
+                              : Icons.play_arrow_rounded,
+                          color: _pureWhite,
+                        ),
+                        if (!isLeft)
+                          const Icon(
+                            Icons.play_arrow_rounded,
+                            color: _pureWhite,
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      "${_seekTapCount * 10} seconds",
+                      style: const TextStyle(
+                        color: _pureWhite,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFrostedHud() {
+    final isMax = (_isLeftZone ? _brightness : _volume) > 0.5;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        child: Container(
+          width: 140,
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.4),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                _isLeftZone
+                    ? (isMax
+                          ? Icons.brightness_high_rounded
+                          : Icons.brightness_medium_rounded)
+                    : (isMax
+                          ? Icons.volume_up_rounded
+                          : Icons.volume_down_rounded),
+                color: _pureWhite,
+                size: 32,
+              ),
+              const SizedBox(height: 16),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(2),
+                  child: LinearProgressIndicator(
+                    value: _isLeftZone ? _brightness : _volume,
+                    backgroundColor: _white30,
+                    valueColor: const AlwaysStoppedAnimation(_pureWhite),
+                    minHeight: 4,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSeekHud() {
+    final isForward = _seekDelta.inSeconds >= 0;
+    final clampedTarget = Duration(
+      milliseconds: (_dragStartPos + _seekDelta).inMilliseconds.clamp(
+        0,
+        _ctrl!.value.duration.inMilliseconds,
+      ),
+    );
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.black87,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        "${_fmt(clampedTarget)}  [${isForward ? '+' : ''}${_seekDelta.inSeconds}s]",
+        style: const TextStyle(
+          color: _pureWhite,
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.5,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSpeedHud() {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(24),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.6),
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: const [
+              Text(
+                "Playing at 2x speed",
+                style: TextStyle(
+                  color: _pureWhite,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              SizedBox(width: 8),
+              Icon(Icons.fast_forward_rounded, color: _pureWhite, size: 20),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showYouTubeSettingsSheet() {
+    _hideTimer?.cancel();
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF212121),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (_) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 56,
-              height: 56,
+              margin: const EdgeInsets.symmetric(vertical: 12),
+              width: 40,
+              height: 4,
               decoration: BoxDecoration(
-                color: TorStreamTheme.accentRed.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: const Icon(
-                Icons.error_outline_rounded,
-                size: 28,
-                color: TorStreamTheme.accentRed,
+                color: _white30,
+                borderRadius: BorderRadius.circular(2),
               ),
             ),
-            const SizedBox(height: 16),
-            const Text(
-              'Playback Error',
-              style: TextStyle(color: Colors.white, fontSize: 16),
+            ListTile(
+              leading: const Icon(
+                Icons.speed_rounded,
+                color: _pureWhite,
+                size: 24,
+              ),
+              title: const Text(
+                "Playback speed",
+                style: TextStyle(color: _pureWhite, fontSize: 15),
+              ),
+              trailing: Text(
+                "${_playbackSpeed}x",
+                style: const TextStyle(color: _white70, fontSize: 14),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                setState(() {
+                  _playbackSpeed = _playbackSpeed == 1.0
+                      ? 1.5
+                      : (_playbackSpeed == 1.5 ? 2.0 : 1.0);
+                  _ctrl?.setPlaybackSpeed(_playbackSpeed);
+                });
+                _wakeUI();
+              },
             ),
             const SizedBox(height: 8),
-            Text(
-              err ?? '',
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.5),
-                fontSize: 13,
-              ),
-              textAlign: TextAlign.center,
-            ),
           ],
         ),
       ),
-    );
-  }
-
-  Widget _loadingView(StreamState st) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const SizedBox(
-            width: 40,
-            height: 40,
-            child: CircularProgressIndicator(
-              strokeWidth: 3,
-              color: TorStreamTheme.seedColor,
-            ),
-          ),
-          const SizedBox(height: 20),
-          const Text(
-            'Buffering...',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 15,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ── Helpers ──
-  double _effectiveAspect() {
-    if (_controller == null || !_controller!.value.isInitialized) return 16 / 9;
-    final src = _controller!.value.aspectRatio;
-    if (_aspectIdx == 0) return src;
-    return _aspects[_aspectIdx];
+    ).then((_) => _wakeUI());
   }
 
   String _fmt(Duration d) {
-    final s = d.inSeconds;
-    final h = s ~/ 3600;
-    final m = (s % 3600) ~/ 60;
-    final sec = s % 60;
-    if (h > 0)
-      return '${h.toString().padLeft(2, '0')}:${m.toString().padLeft(2, '0')}:${sec.toString().padLeft(2, '0')}';
-    return '${m.toString().padLeft(2, '0')}:${sec.toString().padLeft(2, '0')}';
+    final m = d.inMinutes.remainder(60).toString().padLeft(2, '0');
+    final s = d.inSeconds.remainder(60).toString().padLeft(2, '0');
+    return d.inHours > 0 ? "${d.inHours}:$m:$s" : "$m:$s";
   }
 }
 
-extension on int {
-  int min(int other) => this < other ? this : other;
+// ── Custom Clipper for Authentic YouTube Ripple ──
+class _SemiCircleClipper extends CustomClipper<Path> {
+  final bool isLeft;
+  _SemiCircleClipper({required this.isLeft});
+
+  @override
+  Path getClip(Size size) {
+    final path = Path();
+    if (isLeft) {
+      path.moveTo(0, 0);
+      path.quadraticBezierTo(size.width, size.height / 2, 0, size.height);
+    } else {
+      path.moveTo(size.width, 0);
+      path.quadraticBezierTo(0, size.height / 2, size.width, size.height);
+    }
+    path.close();
+    return path;
+  }
+
+  @override
+  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }

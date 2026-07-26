@@ -31,8 +31,8 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Clear Watch History'),
-        content: const Text('This will remove all saved stream history items.'),
+        title: const Text('Clear History'),
+        content: const Text('Remove all saved stream history items?'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
           FilledButton(
@@ -80,8 +80,13 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
     final cs = Theme.of(context).colorScheme;
 
     return Scaffold(
+      backgroundColor: TorStreamTheme.surfaceDark,
       appBar: AppBar(
         title: const Text('Watch History'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded, size: 20),
+          onPressed: () => context.pop(),
+        ),
         actions: [
           if (_items.isNotEmpty)
             IconButton(
@@ -97,53 +102,53 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    width: 64, height: 64,
+                    width: 56, height: 56,
                     decoration: BoxDecoration(
-                      color: cs.onSurface.withValues(alpha: 0.05),
+                      color: cs.onSurface.withValues(alpha: 0.04),
                       borderRadius: BorderRadius.circular(16),
                     ),
-                    child: Icon(Icons.history_toggle_off_rounded, size: 28,
-                      color: cs.onSurface.withValues(alpha: 0.2)),
+                    child: Icon(Icons.history_toggle_off_rounded, size: 26,
+                      color: cs.onSurface.withValues(alpha: 0.25)),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 14),
                   Text('No watch history yet',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(color: cs.onSurface.withValues(alpha: 0.6))),
-                  const SizedBox(height: 6),
-                  Text('Streams you watch are saved locally for resume',
-                    style: TextStyle(fontSize: 13, color: cs.onSurface.withValues(alpha: 0.35))),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(color: cs.onSurface.withValues(alpha: 0.7))),
+                  const SizedBox(height: 4),
+                  Text('Streams you watch are saved locally',
+                    style: TextStyle(fontSize: 12, color: cs.onSurface.withValues(alpha: 0.4))),
                 ],
               ),
             )
           : ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               itemCount: _items.length,
               itemBuilder: (ctx, i) {
                 final item = _items[i];
                 return Card(
-                  margin: const EdgeInsets.symmetric(vertical: 5),
+                  margin: const EdgeInsets.symmetric(vertical: 4),
                   child: Padding(
-                    padding: const EdgeInsets.all(14),
+                    padding: const EdgeInsets.all(12),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           children: [
                             Container(
-                              width: 40, height: 40,
+                              width: 36, height: 36,
                               decoration: BoxDecoration(
                                 color: TorStreamTheme.seedColor.withValues(alpha: 0.12),
                                 borderRadius: BorderRadius.circular(10),
                               ),
                               child: const Icon(Icons.play_circle_fill_rounded,
-                                color: TorStreamTheme.seedColor, size: 22),
+                                color: TorStreamTheme.seedColor, size: 20),
                             ),
-                            const SizedBox(width: 12),
+                            const SizedBox(width: 10),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(item.title,
-                                    style: Theme.of(context).textTheme.titleMedium,
+                                    style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
                                     maxLines: 1, overflow: TextOverflow.ellipsis),
                                   const SizedBox(height: 2),
                                   Text('${item.timeAgoLabel} \u2022 Stream',
@@ -152,7 +157,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                               ),
                             ),
                             IconButton(
-                              icon: const Icon(Icons.close_rounded, size: 18),
+                              icon: const Icon(Icons.close_rounded, size: 16),
                               color: cs.onSurface.withValues(alpha: 0.3),
                               onPressed: () async {
                                 await TorrentBox.instance.remove(item.magnetUri);
@@ -161,22 +166,22 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 8),
                         ClipRRect(
-                          borderRadius: BorderRadius.circular(3),
+                          borderRadius: BorderRadius.circular(2),
                           child: TweenAnimationBuilder<double>(
                             tween: Tween(begin: 0, end: item.progressRatio),
-                            duration: const Duration(milliseconds: 600),
+                            duration: const Duration(milliseconds: 500),
                             curve: Curves.easeOutCubic,
                             builder: (_, value, __) => LinearProgressIndicator(
                               value: value,
-                              minHeight: 3,
+                              minHeight: 2.5,
                               backgroundColor: cs.surfaceContainerHighest,
                               valueColor: const AlwaysStoppedAnimation(TorStreamTheme.seedColor),
                             ),
                           ),
                         ),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 8),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -189,16 +194,16 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                             TextButton.icon(
                               style: TextButton.styleFrom(
                                 foregroundColor: TorStreamTheme.seedColor,
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                 visualDensity: VisualDensity.compact,
                               ),
                               icon: _isResuming
                                   ? const SizedBox(
-                                      width: 14, height: 14,
+                                      width: 12, height: 12,
                                       child: CircularProgressIndicator(strokeWidth: 2),
                                     )
                                   : const Icon(Icons.play_arrow_rounded, size: 16),
-                              label: const Text('Resume', style: TextStyle(fontWeight: FontWeight.w600)),
+                              label: const Text('Resume', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
                               onPressed: _isResuming ? null : () => _resumeStream(item),
                             ),
                           ],

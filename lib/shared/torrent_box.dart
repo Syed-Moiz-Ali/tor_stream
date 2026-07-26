@@ -123,8 +123,8 @@ class TorrentBox {
     if (positionMs < 3000) return;
     final key = magnetUri.trim().toLowerCase().hashCode.toRadixString(16);
     final existing = _b.get(key);
-    if (existing == null) return;
-    final raw = existing as Map;
+    if (existing == null || existing is! Map) return;
+    final raw = existing;
     final model = TorrentModel(
       magnetUri: raw['magnetUri'] as String? ?? magnetUri,
       title: title ?? (raw['title'] as String? ?? 'Unknown'),
@@ -140,15 +140,18 @@ class TorrentBox {
   TorrentModel? get(String magnetUri) {
     final key = magnetUri.trim().toLowerCase().hashCode.toRadixString(16);
     final raw = _b.get(key);
-    if (raw == null) return null;
-    return TorrentModel.fromMap(raw as Map);
+    if (raw == null || raw is! Map) return null;
+    return TorrentModel.fromMap(raw);
   }
 
   /// All entries sorted by last watched time (newest first).
   List<TorrentModel> getAll() {
-    final entries = _b.values
-        .map((v) => TorrentModel.fromMap(v as Map))
-        .toList();
+    final entries = <TorrentModel>[];
+    for (final v in _b.values) {
+      if (v is Map) {
+        entries.add(TorrentModel.fromMap(v));
+      }
+    }
     entries.sort((a, b) => b.lastWatchedAt.compareTo(a.lastWatchedAt));
     return entries;
   }
